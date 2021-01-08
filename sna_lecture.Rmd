@@ -1,0 +1,214 @@
+---
+title: "TITLE"
+author: "Jared Joseph"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  xaringan::moon_reader:
+    css: [xaringan-themer.css, my_xaringan.css]
+    seal: false
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: '16:9'
+---
+```{r xaringan-themer, include = FALSE}
+# servr::daemon_stop(1)
+
+# What packages do you need?
+library(xaringanthemer)
+library(fontawesome)
+library(RefManageR)
+
+# set fonts if on windows
+if(.Platform$OS.type == "windows"){
+  windowsFonts(Montserrat=windowsFont("MONTSERRAT-REGULAR"))
+}
+
+# set xaringanthemer theme configs
+duo(
+  primary_color = "#362c47", secondary_color = "#ff7400",
+  header_font_google = google_font("Josefin Sans"),
+  text_font_google   = google_font("Montserrat", "300", "300i"),
+  code_font_google   = google_font("Droid Mono")
+)
+
+# For citations
+options(htmltools.dir.version = FALSE)
+RefManageR::BibOptions(check.entries = FALSE, bib.style = "authoryear", style = "markdown", dashed = TRUE)
+bib <- RefManageR::ReadBib("../../../../../../ZoteroDB/zotero_short.bib")
+```
+
+layout: true
+
+<div class="my-footer">
+<website>
+jnjoseph.com
+</website>
+<event-name>
+IST008A
+</event-name>
+</div>
+
+---
+
+class: left, top
+background-image: url(resources/title_bg.jpg)
+background-size: cover
+
+# Intro to Social Network Analysis (SNA)
+## Jared Joseph
+`r format(Sys.time(), '%B %d, %Y')`
+
+<br>
+<br>
+<br>
+<br>
+
+### While you wait:
+
+* Make sure you have installed: statnet, igraph, tidygraph, and intergraph
+* Play around with https://oracleofbacon.org/
+
+---
+
+# Intro
+
+To cite something, people use `r Citet(bib, "bensonHarmingAmericaCorporate2019")`
+
+???
+
+Use 3 ? for speakers notes
+
+---
+
+class: center, middle
+
+# MAIN QUESTION
+
+---
+
+# Data
+
+For slide alignment use
+
+`class: Horizontal, vetical`
+
+Horizontal: left, center, right
+Vertical: top, middle, bottom
+
+Use inverse in class to swap colors!
+Special: inverse
+
+
+---
+
+# Data
+
+For individual words use:
+
+.left[left]
+.right[right]
+.center[center]
+
+---
+
+# Methods
+
+Use two dashes `--` for
+
+--
+
+Incremental reveals
+
+---
+
+# Methods
+
+Use these for slide layouts:
+
+`.pull-left / .pull-right / .left-column / .right-column`
+
+---
+
+# Methods
+
+Use this for code highlights!
+
+This! #<<
+
+four dashes make a line!
+
+----
+
+---
+
+# Methods
+
+My custom font sizes
+
+.colossal[colossal]
+.gargantuan[gargantuan]
+.huge[huge]
+.large[large]
+.small[small]
+.tiny[tiny]
+.diminutive[diminutive]
+
+---
+
+# Results
+
+---
+
+# Results
+
+---
+
+# Results
+
+---
+
+# Future Directions
+
+---
+
+# Conclusion
+
+---
+
+# Thank you!
+.pull-left[
+
+<br>
+
+### [`r fa(name = "twitter", fill = "#FFFFFF")` @epsian](http://twitter.com/epsian)  
+### [`r fa(name = "github", fill = "#FFFFFF")` @epsian](http://github.com/epsian)  
+### [`r fa(name = "link", fill = "#FFFFFF")` jnjoseph.com](https://jnjoseph.com)  
+### [`r fa(name = "paper-plane", fill = "#FFFFFF")` jnjoseph@ucdavis.edu](mailto:jnjoseph@ucdavis.edu)
+
+<br>
+
+.footnote[.small[
+Photo Credits
+]]
+
+]
+
+.pull-right[
+.center[
+```{r echo=FALSE, out.width='100%', out.extra='style="background-color: #FFF; padding:5px;position: relative; top: -60px"'}
+knitr::include_graphics("resources/prof_photo.jpg")
+```
+]
+]
+
+---
+
+# References
+
+```{r, results='asis', echo=FALSE}
+PrintBibliography(bib)
+```
+
+

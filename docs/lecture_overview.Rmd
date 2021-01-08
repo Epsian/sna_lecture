@@ -1,0 +1,139 @@
+---
+title: "Social Network Analysis (SNA) in R"
+author: "Jared Joseph"
+date: "As of `r format(Sys.time(), '%B %d, %Y')`"
+link-citations: TRUE
+linkcolor: "myorange"
+urlcolor: "myorange"
+citecolor: "myorange"
+fontsize: 11pt
+geometry: margin=1in
+header-includes:
+  - \usepackage{setspace}
+  #- \doublespacing
+  #- \setlength{\parindent}{3em}
+  - \setlength{\parskip}{0.5em}
+  - \usepackage[dvipsnames]{xcolor}
+  - \definecolor{myorange}{RGB}{255, 116, 0}
+  - \usepackage{titlesec}                                # for dense paragraphs
+  - \titlespacing{\section}{1.5pt}{\parskip}{-\parskip}
+  - \titlespacing{\subsection}{1.5pt}{\parskip}{-\parskip}
+  - \titlespacing{\subsubsection}{1.5pt}{\parskip}{-\parskip}
+output:
+  pdf_document:
+    toc: FALSE
+    number_sections: FALSE
+    fig_caption: TRUE
+    fig_width: 10
+    fig_height: 6
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.retina = 3)
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+# Overview
+
+This lecture will provide an introduction to social network analysis (SNA) theory, data, and applications. Students will learn how SNA has been applied in research, government, and industry, as well as how to prepare for and conduct SNA analyses themselves. We will use the R programming language and the statnet package while also introducing igraph, tidygraph, and the intergraph tool for switching between them.
+
+The first portion of the lecture will follow an R markdown file which will contain all the required code to load and analyze a network dataset. This guided portion will be mostly lecture, with pauses for questions. After the lecture portion, 30 minutes will be left at the end of class for students to start the homework assignment. The assignment will be a pre-created R markdown file with question prompts. This class "lab" time is included to encourage students to learn through doing, with an instructor close by to help students quickly with any roadblocks.
+
+## Learning Objectives
+
+At the end of this lecture students should understand:
+
+-   What a network is.
+-   What is and is not relational data.
+-   How vulnerable SNA is to missing data.
+-   What common network analysis metrics are available and how to interpret them.
+-   The limitations and shortcomings of social network analysis.
+
+## Roadmap
+
+-   Pre-class waiting:
+
+    -   Install [Statnet](https://statnet.org/), [igraph](https://igraph.org/), [tidygraph](https://tidygraph.data-imaginist.com/index.html), and [intergraph](http://mbojan.github.io/intergraph/)
+    -   <https://oracleofbacon.org/>
+
+-   What is SNA (10 Mins)
+
+    -   What is a Network
+    -   Benefits of relational perspective
+
+-   Examples of networks in research (5 Mins)
+
+    -   Social Sciences
+    -   Neuroscience
+    -   Chemistry
+    -   The Internet
+    -   Infrastructure
+    -   Security
+
+-   SNA Data (10 Mins)
+
+    -   Adjacency Matrix, Edgelists
+    -   Attribute Files
+    -   Bipartite networks, assumptions
+    -   Data Expectations and Limitations
+
+-   Network (graph) level properties (10 Mins)
+
+    -   Directed/un-directed
+    -   Components/isolates
+    -   Density
+    -   Centralization
+
+-   Individual (node) level properties (20 Mins)
+
+    -   Degree
+    -   Geodesic Distance
+    -   K-core
+    -   Betweenness Centrality
+    -   Eigenvector Centrality
+    -   Fragmentation
+    -   Closeness
+    -   Nestedness
+
+-   SNA Tools (5 Min)
+
+    -   R: Statnet, igraph, tidygraph, intergraph
+    -   Gephi
+
+-   Guided Homework Start/Question Time (30 Mins)
+
+# Homework
+
+## Required Readings
+
+-   [@colemanSocialCapitalCreation1988a]: Coleman's paper introduced the idea of social capital and is a cornerstone in the social sciences.
+-   [@greenModelingContagionSocial2017]: This paper brings network ideas into the "real-world" and talks about how violence spreads in a network in predictable ways. It also provides a way to talk about when SNA is abused, as the Chicago police used network tools developed as part of this and similar projects to create a "strategic subjects list" to track people rather than offer help.
+-   [@kadushinUnderstandingSocialNetworks2012]: Kadushin's book provides an excellent introduction to network concepts. I will most likely require students read the first three chapters.
+
+## Pre-Class Exercise
+
+Students will be given a homework assignment prior to class along with the readings. This assignment will be a name generator, or a request for students to fill in names from their own personal network (ego network). Each student will be asked to provide the first and last names of up to 15 peers at UC Davis[^1], as well as up to 15 course numbers they have enrolled in. This name and course data will be cleaned and turned into networks prior to class and will used for classroom instruction.
+
+[^1]: There may be privacy concerns regarding using student names in this way. I believe the risk is worthwhile, given the benefits articulated here.
+
+The *peer name* network data will be used as the primary data for classroom work, and provides several advantages. First and foremost the data is "close to home" and students typically find working with it more interesting than random data. This also makes several of the class topics more relatable and salient to students. For example, with a network of their peers concepts like brokerage---two students in class connected by a third external student---become immediately recognizable and memorable, as students discover a mutual friend connects them. Removing such links also allows easy discussion of missingness in network data.
+
+The *courses taken* network data provides an example of a bipartite network, and will serve as a more reliable dataset in case it happens that none of the students are in any way networked to each other. It also provides opportunities to talk about the assumption in network data when combined with the peer network. If students shared courses previously but did not include each other in their peer network, it easily segues into a discussion on what it means to be linked in a network and SNA assumptions.
+
+## Expanded Readings
+
+-   [@emirbayerManifestoRelationalSociology1997a]: Foundational for understanding a "relational" mindset.
+-   [@mcphersonBirdsFeatherHomophily2001]: A classic and well cited paper talking about one of the principle ideas of networks.
+-   [@smallUnanticipatedGainsOrigins2009]: A great read which shows the power of brokerage and organizations.
+-   [@smithTrustThyCrooked2016a]: Multiplexity explained with fun gangster context (also my first adviser wrote it).
+-   [@wassermanSocialNetworkAnalysis1994]: The "SNA Bible" is a must have on SNA researcher's bookshelves.
+
+## Post-Class Evaluation
+
+After this lecture, students will be asked to load in a well known network dataset (the florentine marriage and business network), and generate the network and node level metrics discussed in lecture. Students will then need to explain what those metrics mean in the context of this network. All data required will be provided, and students will be asked to turn in an R markdown file containing their work. The difficulty of the coding should be low, as once the data is loaded in, nearly all commands will be identical to the lecture. Interpreting the metrics in a new context however will require a firm understanding of what the network metrics *mean* and what they can tell us.
+
+\newpage
+
+# References
