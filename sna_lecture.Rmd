@@ -20,6 +20,9 @@ library(xaringanthemer)
 library(fontawesome)
 library(RefManageR)
 
+library(visNetwork)
+
+
 # set fonts if on windows
 if(.Platform$OS.type == "windows"){
   windowsFonts(Montserrat=windowsFont("MONTSERRAT-REGULAR"))
@@ -72,74 +75,157 @@ background-size: cover
 
 ---
 
-# Intro
-
-To cite something, people use `r Citet(bib, "bensonHarmingAmericaCorporate2019")`
+# Learning Objectives
+.huge[
+-   What a network is.
+-   What is and is not relational data.
+-   How vulnerable SNA is to missing data.
+-   What common network analysis metrics are available and how to interpret them.
+-   The limitations and shortcomings of social network analysis.
+]
 
 ???
 
-Use 3 ? for speakers notes
+---
+
+# Roadmap
+
+.huge[
+-   What is Social Network Analysis (SNA)
+-   Examples of networks in research
+-   SNA Data
+-   Network (graph) level properties
+-   Individual (node) level properties
+-   SNA Tools
+-   Guided Homework Start/Question Time
+]
 
 ---
 
-class: center, middle
+# What is Social Network Analysis (SNA)
 
-# MAIN QUESTION
-
----
-
-# Data
-
-For slide alignment use
-
-`class: Horizontal, vetical`
-
-Horizontal: left, center, right
-Vertical: top, middle, bottom
-
-Use inverse in class to swap colors!
-Special: inverse
-
-
----
-
-# Data
-
-For individual words use:
-
-.left[left]
-.right[right]
-.center[center]
-
----
-
-# Methods
-
-Use two dashes `--` for
+.center[.large[A tool to work with *relational* data.]]
 
 --
 
-Incremental reveals
+.center[
+```{r echo=FALSE, out.width='50%'}
+knitr::include_graphics("resources/df_img.png")
+```
+]
+
+???
+
+A method to look at relational data.
+
+Rather than looking only at attributes of specific data points, we are looking at the connections between data.
+
+IN SNA, data points are called **nodes**, and the connections between them are called **edges**.
+
+These components create a **network**, defined by [Wasserman & Faust (1994)](http://www.cambridge.org/us/academic/subjects/sociology/sociology-general-interest/social-network-analysis-methods-and-applications?format=PB) as "finite set or sets of actors and the relation or relations defined on them."
 
 ---
 
-# Methods
+# What is Social Network Analysis (SNA)
 
-Use these for slide layouts:
+.center[.large[A tool to work with *relational* data.]]
 
-`.pull-left / .pull-right / .left-column / .right-column`
+.center[
+```{r echo=FALSE, out.width='200%'}
+nodes = data.frame(id = 1:4, 
+                    shape = "image",
+                    image = c("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-teacher_1f468-200d-1f3eb.png", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-student_1f468-200d-1f393.png", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-scientist_1f469-200d-1f52c.png"))
+
+edges = data.frame(from = c(2,4,3,3), to = c(1,2,4,2), label = c("Siblings", "Student", "Friends", "Parent"))
+
+visNetwork(nodes, edges, width = "100%") %>% 
+  visNodes(shapeProperties = list(useBorderWithImage = FALSE), size = 50) %>%
+  visEdges(length = 200, scaling = list(min = 400)) %>%
+  visLayout(randomSeed = 2)
+```
+]
 
 ---
 
-# Methods
+# Networks in research - Social Sciences
 
-Use this for code highlights!
+.center[
+```{r echo=FALSE, out.width='40%'}
+knitr::include_graphics("resources/who_shall_survive.png")
+```
+]
 
-This! #<<
+.footnote[`r Citet(bib, "morenoWhoShallSurvive1953")`]
 
-four dashes make a line!
+???
 
-----
+One of the first instances of SNA was originally published in 1932 in Jacob Moreno's "Who Shall Survive"
+
+Focused on runaway girls at a correctional school, and how their associations could predict running away more than any attributes of the individual children.
+
+Since then, networks have been used in the social sciences, but only really picked up as the tools to understand SNA became more available.
+
+---
+
+# Networks in research - Neuroscience
+
+.center[
+```{r echo=FALSE, out.width='60%'}
+knitr::include_graphics("resources/neuronet.jpg")
+```
+]
+
+.footnote[`r Citet(bib, "bassettNetworkNeuroscience2017")`]
+
+???
+
+Neuroscientists use networks (or graphs) to study the brain
+
+useful for understanding how neurons and neuron clusters work
+
+---
+
+# Networks in research - Chemestry
+
+.center[
+```{r echo=FALSE, out.width='60%'}
+knitr::include_graphics("resources/chem_graph.jpg")
+```
+]
+
+.footnote[`r Citet(bib, "balabanApplicationsGraphTheory1985")`]
+
+???
+
+Chemistry was quick to see the use, as early at 1985 seeing the similarities between molocules and networks
+
+---
+
+# Networks in research - The Internet
+
+
+
+---
+
+# Networks in research - Infastructure
+
+---
+
+# Networks in research - Security
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -157,22 +243,6 @@ My custom font sizes
 
 ---
 
-# Results
-
----
-
-# Results
-
----
-
-# Results
-
----
-
-# Future Directions
-
----
-
 # Conclusion
 
 ---
@@ -186,12 +256,6 @@ My custom font sizes
 ### [`r fa(name = "github", fill = "#FFFFFF")` @epsian](http://github.com/epsian)  
 ### [`r fa(name = "link", fill = "#FFFFFF")` jnjoseph.com](https://jnjoseph.com)  
 ### [`r fa(name = "paper-plane", fill = "#FFFFFF")` jnjoseph@ucdavis.edu](mailto:jnjoseph@ucdavis.edu)
-
-<br>
-
-.footnote[.small[
-Photo Credits
-]]
 
 ]
 
