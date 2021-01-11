@@ -1,0 +1,61 @@
+div.my-footer {
+    background-color: #272822;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height: 40px;
+    width: 100%;
+    text-align:center;
+}
+
+div.my-footer website {
+    font-size: 14pt;
+    color: #F7F8FA;
+    position: absolute;
+    left: 2%;
+    bottom: 13px;
+}
+
+div.my-footer event-name {
+    font-size: 14pt;
+    color: #F7F8FA;
+    margin-left: auto;
+    margin-right: auto;
+    bottom: -4px;
+    position: relative;
+}
+
+/* font sizes */
+
+.colossal { font-size: 220% }
+.gargantuan { font-size: 190% }
+.huge { font-size: 160% }
+.large { font-size: 130% }
+.small { font-size: 70% }
+.tiny { font-size: 40% }
+.diminutive { font-size: 10% }
+
+/* super and sub script */
+
+.super{vertical-align: super}
+.sub{vertical-align: sub}
+
+/* font colors */
+
+.blue { color: blue }
+.red { color: red }
+.green { color: green }
+.aqua { color: aqua }
+.chartreuse { color:chartreuse }
+
+.black { color: black }
+.white { color: white }
+
+.mcp { color: #362c47 }
+.mco { color: #ff7400 }
+
+/* font effects */
+
+.strokeb { text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+.strokew { text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
+.glow { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073, 0 0 40px #e60073, 0 0 50px #e60073, 0 0 60px #e60073, 0 0 70px #e60073; }
