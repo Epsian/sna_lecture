@@ -1,6 +1,6 @@
 ---
 title: "TITLE"
-author: "Jared Joseph"
+author: "[Jared Joseph](https://jnjoseph.com/)"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   xaringan::moon_reader:
