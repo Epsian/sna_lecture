@@ -387,7 +387,9 @@ visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network")
 
 
 
+---
 
+# ADD SOMETHING ABOUT WEIGHTED EDGES
 
 
 ---
