@@ -3,8 +3,8 @@ title: Network Analysis in R
 author: "[Jared Joseph](https://jnjoseph.com/)"
 date: January 13, 2020
 output: rmdformats::readthedown
+bibliography: references.bib
 ---
-
 
 ```{r setup, include=FALSE}
 library(knitr)
@@ -29,18 +29,19 @@ opts_knit$set(width=75)
 
 ## While you wait
 
-* Make sure you have installed: statnet, igraph, tidygraph, and intergraph
-* *DOWNLOAD DATA*
-* Play around with https://oracleofbacon.org/
+-   Make sure you have installed all the packages you will need: `install.packages(c("statnet", "igraph", "intergraph"))`
+-   *DOWNLOAD DATA*
+-   Play around with <https://oracleofbacon.org/>
 
 ## Learning Objectives
 
 By the end of this class meeting, students should be able to:
--   What a network is.
--   What is and is not relational data.
--   How vulnerable SNA is to missing data.
--   What common network analysis metrics are available and how to interpret them.
--   The limitations and shortcomings of social network analysis.
+
+-   Understand what a network is.
+-   Understand what is and is not relational data.
+-   Understand the shortcomings and limitations of network analysis.
+-   Analyze the utility of a dataset for network analysis.
+-   Evaluate a network dataset and interpret the generated metrics.
 
 ## Roadmap
 
@@ -52,28 +53,24 @@ By the end of this class meeting, students should be able to:
 -   SNA Tools
 -   Guided Homework Start/Question Time
 
-# What is Social Network Analysis (SNA)
+# What is Network Analysis
 
-A tool to work with *relational* data.
+You are all most likely familiar now with tabular data; rows and columns containing information. It looks like this:
 
-```{r echo=FALSE, out.width='100%'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/df_img.png?token=AGC2JV4UGTSPRFBBK4WJIETABC6RA")
+```{r echo=FALSE, out.width='50%'}
+knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/df_img.png?token=AGC2JV3VJUEABXVUDKY2KKLABDBJY")
 ```
 
-???
-
-A method to look at relational data
-
-You should be familiar with data that looks like this now
-
-Square table with rows and columns, and this is a good, tidy way to keep data
-
+While this is a tidy way to store data, it artificially atomizes or separates many of the things we are interested in as researchers, social or otherwise. Network analysis is a tool to work with *relational* data. This is the information about how individuals are connected with each other. For example, the diagram below shows the same data as the table above, with the added benefit of showing how these individuals are connected to each other. Hover over the people to reveal the data about them.
 
 ```{r echo=FALSE, out.width='100%'}
 nodes = data.frame(id = 1:4, 
                     shape = "image",
-                    title = c("<p style='color: black;'>A<br>28<br>1</p>", "<p style='color: black;'>Y<br>21<br>3</p>", "<p style='color: black;'>G<br>32<br>4</p>", "<p style='color: black;'>Z<br>48<br>8</p>"),
-                    image = c("https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-teacher_1f468-200d-1f3eb.png", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-student_1f468-200d-1f393.png", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png", "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-scientist_1f468-200d-1f52c.png"))
+                    title = c("<p style='color: black;'>J<br>30<br>1</p>", "<p style='color: black;'>Y<br>21<br>3</p>", "<p style='color: black;'>G<br>32<br>4</p>", "<p style='color: black;'>Z<br>48<br>8</p>"),
+                    image = c(
+              "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-teacher_1f468-200d-1f3eb.png",
+              "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/microsoft/106/female-student_1f469-200d-1f393.png",                        "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png",
+              "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-scientist_1f468-200d-1f52c.png"))
 
 edges = data.frame(from = c(2,4,3,3), to = c(1,2,4,2), label = c("Siblings", "Student", "Friends", "Parent"))
 
@@ -84,13 +81,7 @@ visNetwork(nodes, edges, width = "100%") %>%
   visLayout(randomSeed = 2)
 ```
 
-???
-
-Rather than looking only at attributes of specific data points, we are looking at the connections between data.
-
-IN SNA, data points are called **nodes**, and the connections between them are called **edges**.
-
-These components create a **network** or graph, defined by @wassermanSocialNetworkAnalysis1994 as "finite set or sets of actors and the relation or relations defined on them."
+Rather than looking only at attributes of specific data points, we are looking at the connections between data. In network analysis, data points are called *nodes* or *vertices*, and the connections between them are called *edges* or *ties*. Vertices can be anything---people, places, word, concepts---they are usually mapped into rows in a data frame. Edges contain any information on how these things connect or are related to each other. These components create a *network* or *graph*, defined as "finite set or sets of actors and the relation or relations defined on them" [@wassermanSocialNetworkAnalysis1994].
 
 ## Networks in research - Social Sciences
 
@@ -98,15 +89,7 @@ These components create a **network** or graph, defined by @wassermanSocialNetwo
 knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/who_shall_survive.png?token=AGC2JV4HE32MDLP2HRWG67DABC6XA")
 ```
 
-@morenoWhoShallSurvive1953
-
-???
-
-One of the first instances of SNA was originally published in 1932 in Jacob Moreno's "Who Shall Survive"
-
-Focused on runaway girls at a correctional school, and how their associations could predict running away more than any attributes of the individual children.
-
-Since then, networks have been used in the social sciences, but only really picked up as the tools to understand SNA became more available.
+One of the first instances of social network analysis was originally published in 1932 as part of Jacob Moreno's *Who Shall Survive* [-@morenoWhoShallSurvive1953]. This study used the friendship networks of girls within a reform school to show that the ties between them were a stronger predictor of runaways than any attribute of the girls themselves. Since then, networks have been used widely in the social sciences, but only really picked up as the tools to understand SNA became more available.
 
 ## Networks in research - Neuroscience
 
@@ -114,28 +97,15 @@ Since then, networks have been used in the social sciences, but only really pick
 knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/neuronet.jpg?token=AGC2JV3IQGC4XW4F4UNPOUDABC6X4")
 ```
 
-@bassettNetworkNeuroscience2017
+Neuroscientists use networks to study the brain, given their ready application to neurons and pathways. Bassett and Sporns [-@bassettNetworkNeuroscience2017] provide an overview of how to translate neuroscience problems into network ones, and the tools available to study them.
 
-???
-
-Neuroscientists use networks (or graphs) to study the brain
-
-useful for understanding how neurons and neuron clusters work
-
-## Networks in research - Chemestry
+## Networks in research - Chemistry
 
 ```{r echo=FALSE, out.width='100%'}
 knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/chem_graph.jpg?token=AGC2JV43VML6CWQRQ3X2P6TABC6YQ")
 ```
 
-
-@balabanApplicationsGraphTheory1985
-
-???
-
-Chemistry was quick to see the use, as early at 1985 seeing the similarities between molecules and networks
-
----
+Chemistry was quick to see the applications of networks. As early at 1985 papers were published detailing the potential networks provided in terms of understanding and finding new ways to measure and understand the bonds between atoms and molecules [@balabanApplicationsGraphTheory1985].
 
 ## Networks in research - The Internet
 
@@ -143,29 +113,19 @@ Chemistry was quick to see the use, as early at 1985 seeing the similarities bet
 knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/page_rank.jpg?token=AGC2JV2B3KWCXB2B6KGKP3LABC6ZI")
 ```
 
-@pageMethodNodeRanking2001
+The internet is a network! Beyond the various social network sites, servers themselves act as nodes and the information flows between them along edges. Google used this property in the first version of their search engine, which used the network metric of PageRank to determine which sites to show at the top of search results [@pageMethodNodeRanking2001].
 
-???
-
-Web pages and search engines ARE networks. 
-
-Page rank is a network metric and was how google sorted pages for a long time.
-
-
-## Networks in research - Infastructure
+## Networks in research - Infrastructure
 
 ```{r echo=FALSE, out.width='100%'}
 knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/infrastructure_net.jpg?token=AGC2JVZCZ4EMYKSZK5ZOSUDABC62A")
 ```
-
 
 @fanGraphbasedMethodSocial2019
 
 ???
 
 Governments and utilities use social network data to try and find where infrastructure is failing during disasters
-
----
 
 ## Networks in research - Security
 
@@ -183,13 +143,13 @@ Network metrics such as "keyplayer" are used to show what node in a network, whe
 
 # Graph Level Properties
 
-* Directed or Un-directed
-* Density
-* Centralization
+Now that we know what networks are and have some example of how they are used, let's get into actually analyzing them. There are a number of metrics we can compute to understand the structure of a network as a whole.
+
+-   Directed or Un-directed
+-   Density
+-   Centralization
 
 ???
-
-Now that we know what networks are and some example of how they are used, let's get into actually analyzing them.
 
 ## Directed or Un-directed
 
@@ -201,12 +161,9 @@ Now that we know what networks are and some example of how they are used, let's 
 visNetwork(.dir_node, .dir_edge, main = "Directed") %>% visInteraction(zoomView = FALSE)
 ```
 
-
 ```{r echo=FALSE}
 visNetwork(.dir_node, .dir_edge[,1:2], main = "Un-directed") %>% visInteraction(zoomView = FALSE)
 ```
-
-
 
 ???
 
@@ -219,18 +176,16 @@ Which one you may find useful largely depends on what you are interested in, and
 ## Density
 
 ```{r echo=FALSE}
-visNetwork(.dir_node, .dir_edge, main = "High Density") %>% visInteraction(zoomView = FALSE)
+visNetwork(.dir_node, .dir_edge[,1:2], main = "High Density") %>% visInteraction(zoomView = FALSE)
 ```
-
 
 ```{r echo=FALSE}
-visNetwork(.dir_node, .dir_edge[c(1:5,7,10,13,15),], main = "Low Density") %>% visInteraction(zoomView = FALSE)
+visNetwork(.dir_node, .dir_edge[c(1:5,7,10,13,15),1:2], main = "Low Density") %>% visInteraction(zoomView = FALSE)
 ```
-
 
 ???
 
-Density is a measure of how many edges exist in a network out of the total possible edge count, using $\frac{Actual Edges}{Possible Edges}$. 
+Density is a measure of how many edges exist in a network out of the total possible edge count, using $\frac{Actual Edges}{Possible Edges}$.
 
 Networks that are more densely connected are considered to be more cohesive, and robust, in that the removal of any specific edge will not have a great effect of the network as a whole.
 
@@ -244,7 +199,6 @@ It also means that, given the nodes being individuals, each node will have a mor
 visNetwork(data.frame("id" = 1:6), .star_edge, main = "Star Network") %>% visInteraction(zoomView = FALSE)
 ```
 
-
 ```{r echo=FALSE}
 .loop_edge = data.frame("from" = c(1,2,3,4,5,6), "to" = c(2,3,4,5,6,1))
 
@@ -254,6 +208,7 @@ visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network") %>% visInt
 ???
 
 **Centralization** measures give a sense of the shape of the network, namely how other measures are distributed in a network. Consider the three networks below. The first "Star" network would be considered highly centralized, as one node connects all the others. It would receive a degree centralization score of 1, as 100% of the ties are connected with one node. The loop network would have a score of 0, as every node is equally connected to each other.
+
 ```{r Centralization}
 ## Networks created manually, to assure the propper shape
 #ce.star = matrix(data = c(0,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0), nrow = 6, ncol = 6)
@@ -271,7 +226,8 @@ visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network") %>% visInt
 #plot(ce.circle, main = "Circle", vertex.cex = 3)
 ```
 
-
----
+------------------------------------------------------------------------
 
 # ADD SOMETHING ABOUT WEIGHTED EDGES
+
+# References
