@@ -57,19 +57,22 @@ By the end of this class meeting, students should be able to:
 
 You are all most likely familiar now with tabular data; rows and columns containing information. It looks like this:
 
-```{r echo=FALSE, out.width='50%'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/df_img.png?token=AGC2JV3VJUEABXVUDKY2KKLABDBJY")
-```
+|Person|Name|Age|Widgits|
+|---|:---|:---|:--|
+|![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-teacher_1f468-200d-1f3eb.png){width=10%}   | J  | 30 | 1 |
+|![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-student_1f469-200d-1f393.png){width=10%}   | Y  | 21 | 3 |
+|![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png){width=10%}   | G  | 32 | 4 |
+|![](https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-scientist_1f468-200d-1f52c.png){width=10%}   | Z  | 48 | 8 |
 
 While this is a tidy way to store data, it artificially atomizes or separates many of the things we are interested in as researchers, social or otherwise. Network analysis is a tool to work with *relational* data. This is the information about how individuals are connected with each other. For example, the diagram below shows the same data as the table above, with the added benefit of showing how these individuals are connected to each other. Hover over the people to reveal the data about them.
 
 ```{r echo=FALSE, out.width='100%'}
 nodes = data.frame(id = 1:4, 
                     shape = "image",
-                    title = c("<p style='color: black;'>J<br>30<br>1</p>", "<p style='color: black;'>Y<br>21<br>3</p>", "<p style='color: black;'>G<br>32<br>4</p>", "<p style='color: black;'>Z<br>48<br>8</p>"),
+                    title = c("<p style='color: black;'>Name: J<br>Age: 30<br>Widgits: 1</p>", "<p style='color: black;'>Name: Y<br>Age: 21<br>Widgits: 3</p>", "<p style='color: black;'>Name: G<br>Age: 32<br>Widgits: 4</p>", "<p style='color: black;'>Name: Z<br>Age: 48<br>Widgits: 8</p>"),
                     image = c(
               "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-teacher_1f468-200d-1f3eb.png",
-              "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/microsoft/106/female-student_1f469-200d-1f393.png",                        "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png",
+              "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-student_1f469-200d-1f393.png",                        "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png",
               "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-scientist_1f468-200d-1f52c.png"))
 
 edges = data.frame(from = c(2,4,3,3), to = c(1,2,4,2), label = c("Siblings", "Student", "Friends", "Parent"))
