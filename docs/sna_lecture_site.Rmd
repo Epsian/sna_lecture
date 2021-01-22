@@ -4,6 +4,7 @@ author: "[Jared Joseph](https://jnjoseph.com/)"
 date: January 13, 2020
 output: rmdformats::readthedown
 bibliography: references.bib
+link-citations: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -24,10 +25,19 @@ opts_knit$set(width=75)
 ```
 
 ```{r links}
-net_url1 = "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-teacher_1f468-200d-1f3eb.png"
-net_url2 = "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-student_1f469-200d-1f393.png"
-net_url3 = "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/female-health-worker_1f469-200d-2695-fe0f.png"
-net_url4 = "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/microsoft/209/male-scientist_1f468-200d-1f52c.png"
+# emojis
+net_url1 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/male-teacher_emoji.png"
+net_url2 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/female-student_emoji.png"
+net_url3 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/female-health-worker_emoji.png"
+net_url4 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/male-scientist_emoji.png"
+
+# examples
+net_url5 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/who_shall_survive.png"
+net_url6 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/neuronet.jpg"
+net_url7 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/chem_graph.jpg"
+net_url8 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/page_rank.jpg"
+net_url9 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/infrastructure_net.jpg"
+net_url10 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/terror_net.png"
 ```
 
 # Overview
@@ -93,7 +103,7 @@ Rather than looking only at attributes of specific data points, we are looking a
 ## Networks in research - Social Sciences
 
 ```{r echo=FALSE, out.width= "25%", out.extra='style="float:right; padding:10px"'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/who_shall_survive.png?token=AGC2JV4HE32MDLP2HRWG67DABC6XA")
+knitr::include_graphics(net_url5)
 ```
 
 One of the first instances of social network analysis was originally published in 1932 as part of Jacob Moreno's *Who Shall Survive* [-@morenoWhoShallSurvive1953]. This study used the friendship networks of girls within a reform school to show that the ties between them were a stronger predictor of runaways than any attribute of the girls themselves. Since then, networks have been used widely in the social sciences, but only really picked up as the tools to understand SNA became more available.
@@ -101,7 +111,7 @@ One of the first instances of social network analysis was originally published i
 ## Networks in research - Neuroscience
 
 ```{r echo=FALSE, out.width= "25%", out.extra='style="float:right; padding:10px"'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/neuronet.jpg?token=AGC2JV3IQGC4XW4F4UNPOUDABC6X4")
+knitr::include_graphics(net_url6)
 ```
 
 Neuroscientists use networks to study the brain, given their ready application to neurons and pathways. Bassett and Sporns [-@bassettNetworkNeuroscience2017] provide an overview of how to translate neuroscience problems into network ones, and the tools available to study them.
@@ -109,7 +119,7 @@ Neuroscientists use networks to study the brain, given their ready application t
 ## Networks in research - Chemistry
 
 ```{r echo=FALSE, out.width= "25%", out.extra='style="float:right; padding:10px"'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/chem_graph.jpg?token=AGC2JV43VML6CWQRQ3X2P6TABC6YQ")
+knitr::include_graphics(net_url7)
 ```
 
 Chemistry was quick to see the applications of networks. As early at 1985 papers were published detailing the potential networks provided in terms of understanding and finding new ways to measure and understand the bonds between atoms and molecules [@balabanApplicationsGraphTheory1985].
@@ -117,7 +127,7 @@ Chemistry was quick to see the applications of networks. As early at 1985 papers
 ## Networks in research - The Internet
 
 ```{r echo=FALSE, out.width= "25%", out.extra='style="float:right; padding:10px"'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/page_rank.jpg?token=AGC2JV2B3KWCXB2B6KGKP3LABC6ZI")
+knitr::include_graphics(net_url8)
 ```
 
 The internet is a network! Beyond the various social network sites, servers themselves act as nodes and the information flows between them along edges. Google used this property in the first version of their search engine, which used the network metric of PageRank to determine which sites to show at the top of search results [@pageMethodNodeRanking2001].
@@ -125,40 +135,32 @@ The internet is a network! Beyond the various social network sites, servers them
 ## Networks in research - Infrastructure
 
 ```{r echo=FALSE, out.width= "25%", out.extra='style="float:right; padding:10px"'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/infrastructure_net.jpg?token=AGC2JVZCZ4EMYKSZK5ZOSUDABC62A")
+knitr::include_graphics(net_url9)
 ```
 
-[@fanGraphbasedMethodSocial2019]
-
-???
-
-Governments and utilities use social network data to try and find where infrastructure is failing during disasters
+Fand and Mostafavi [-@fanGraphbasedMethodSocial2019] showed how you can use social media network data to find where infrastructure is failing during disasters, such as hurricane Harvey in 2017. Their system promises a method to monitor physical infrastructure like roads, bridges, and barriers like more easily monitored infrastructure like the electrical grid.
 
 ## Networks in research - Security
 
 ```{r echo=FALSE, out.width= "25%", out.extra='style="float:right; padding:10px"'}
-knitr::include_graphics("https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/terror_net.png?token=AGC2JV5PUJBSL2QWAG2WK73ABC62U")
+knitr::include_graphics(net_url10)
 ```
 
-[@krebsMappingNetworksTerrorist2002]
-
-???
-
-Topic we will get to more later: networks are also sometimes used offensively.
-
-Network metrics such as "keyplayer" are used to show what node in a network, when removed, would fragment the network fastest
+Network analysis has also been used for offensive purposes. One of the most prominent uses is mapping crime or terror networks [@krebsMappingNetworksTerrorist2002], though it is fraught with ethical concerns. There are specific tools made for this purpose, such as the *keyplayer* package [@anKeyplayerPackageLocating2016], which helps find what nodes in a network would fragment them the most if removed.
 
 # Graph Level Properties
 
-Now that we know what networks are and have some example of how they are used, let's get into actually analyzing them. There are a number of metrics we can compute to understand the structure of a network as a whole.
+Now that we know what networks are and have some examples of how they are used, let's get into actually analyzing them. There are a number of metrics we can compute to understand the structure of a network as a whole.
 
--   Directed or Un-directed
--   Density
--   Centralization
-
-???
+* Directed or Un-directed
+* Density
+* Centralization
 
 ## Directed or Un-directed
+
+Networks can either be *directed* or *un-directed*. A directed network treats the edges between nodes as having a specific direction of flow, while an un-directed network considers all edges to be mutual. An example of each is presented below.
+
+A directed network tracks which node is the source and which node is the receiver for an edge. Take for example the follow mechanic on Twitter. User A can follow User B, creating a directed edge from A to B, but B does not have to follow A in return. This can be useful when trying to understand the flows of resources that are finite such as money or goods.
 
 ```{r Directionality, echo=FALSE}
 .dir_node = data.frame("id" = 1:10)
@@ -168,19 +170,19 @@ Now that we know what networks are and have some example of how they are used, l
 visNetwork(.dir_node, .dir_edge, main = "Directed") %>% visInteraction(zoomView = FALSE)
 ```
 
+An un-directed network treats all ties as mutual, such that A and B are both involved equally in a tie. An example is the friend mechanic on Facebook. Once a friendship is established, both users are considered equal in the tie. This can be helpful when you do not have information on what node initiates a tie, or when events happen equally to a group of nodes, such as all nodes being connected through co-membership in a group.
+
 ```{r echo=FALSE}
 visNetwork(.dir_node, .dir_edge[,1:2], main = "Un-directed") %>% visInteraction(zoomView = FALSE)
 ```
 
-???
-
-One of the first graph level properties we need to understand is if it is directed or undirected.
-
-Directed - tracks what node is sending something to another node, undirected considers all edges to be mutual. Facebook or twitter.
-
-Which one you may find useful largely depends on what you are interested in, and the data you are using.
+Which of these will be useful to you will likely change from project to project. However, it is vital to understand what kind of network you are working with, as many network calculations we will talk about later change their behavior based on if the network is directed or not.
 
 ## Density
+
+*Density* is the first real graph level metric that helps you understand what is particular about the network you are looking at. The density of a network is a numerical score showing how many ties exist in a network, given the max possible in that network. Mathematically that is $\frac{Actual Edges}{Possible Edges}$, where actual edges is the number of edges in the netowrk, and possible edges is the number of edges if every single node in the network was connected to every other node.
+
+Networks that are more densely connected are considered to be more cohesive and robust. This means that the removal of any specific edge or node will not have a great effect of the network as a whole. It also typically means that any one node in the network will be more likely to have access to whatever resources are in the network, as there are more potential connections in the network to search for resources.
 
 ```{r echo=FALSE}
 visNetwork(.dir_node, .dir_edge[,1:2], main = "High Density") %>% visInteraction(zoomView = FALSE)
@@ -190,15 +192,13 @@ visNetwork(.dir_node, .dir_edge[,1:2], main = "High Density") %>% visInteraction
 visNetwork(.dir_node, .dir_edge[c(1:5,7,10,13,15),1:2], main = "Low Density") %>% visInteraction(zoomView = FALSE)
 ```
 
-???
-
-Density is a measure of how many edges exist in a network out of the total possible edge count, using $\frac{Actual Edges}{Possible Edges}$.
-
-Networks that are more densely connected are considered to be more cohesive, and robust, in that the removal of any specific edge will not have a great effect of the network as a whole.
-
-It also means that, given the nodes being individuals, each node will have a more direct route to resources that may be present in the network, as they know more individuals who may have the resource they are looking for, or will have a greater chance of knowing someone else who does.
-
 ## Centralization
+
+*Freeman Centralization* gives a sense of the shape of the network, namely how node level measures are distributed in a network. We'll discuss node level measures next, but for now it is only important to understand that node level measures are numeric scores assigned to specific nodes rather than the network as a whole. This means that each node may have a different value.
+
+Consider the two networks below. The first "star" network would be considered highly centralized, as one node connects to all the others, while the rest of the nodes have no connections to each other. This star network would have a edge centralization score of 1, as 100% of the ties are connected with one node. The loop network would have a score of 0, as every node is equally connected to each other.
+
+Centralization is a measure of how unevenly node level metrics are distributed in a network. This is helpful when trying to understand if some nodes in the network have a larger influence, or are is some way more important than others. 
 
 ```{r echo=FALSE}
 .star_edge = data.frame("from" = c(1,2,3,4,5), "to" = c(6,6,6,6,6))
@@ -212,26 +212,83 @@ visNetwork(data.frame("id" = 1:6), .star_edge, main = "Star Network") %>% visInt
 visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network") %>% visInteraction(zoomView = FALSE)
 ```
 
-???
+# Node Level Properties
 
-**Centralization** measures give a sense of the shape of the network, namely how other measures are distributed in a network. Consider the three networks below. The first "Star" network would be considered highly centralized, as one node connects all the others. It would receive a degree centralization score of 1, as 100% of the ties are connected with one node. The loop network would have a score of 0, as every node is equally connected to each other.
+Node level measures are numeric representations of a node's position and importance in a network. There are several common node level measures, and we will go over some of them here. Each measure tries to quantify a different aspect of a node's position in the network so we can make an argument about why that specific node or class of nodes is important in some way. We will go over:
 
-```{r Centralization}
-## Networks created manually, to assure the propper shape
-#ce.star = matrix(data = c(0,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0), nrow = 6, ncol = 6)
-#ce.star = network(ce.star, matrix.type = "adjacency", directed = FALSE)
-#
-#ce.line = matrix(data = c(0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0), nrow = 6, ncol = 6)
-#ce.line = network(ce.line, matrix.type = "adjacency", directed = FALSE)
-#
-#ce.circle = matrix(data = c(0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0), nrow = 6, ncol = 6)
-#ce.circle = network(ce.circle, matrix.type = "adjacency", directed = FALSE)
-#
-#par(mfrow=c(1,3))
-#plot(ce.star, main = "Star", vertex.cex = 3)
-#plot(ce.line, main = "Line", vertex.cex = 3)
-#plot(ce.circle, main = "Circle", vertex.cex = 3)
+* Degree
+* Geodesic distance
+* k-core
+* Betweenness centrality
+* Eigenvector centrality
+* 
+
+Many node level measures are only helpful within the context of the network they were generated for. This is because the measures are created in part using network level measures like density. This means it is alright to compare one node to another within the same network, but toy should node compare the node level measures between networks.
+
+## Degree
+
+*Degree* counts of how many edges are connected to a node. You can count incoming, outgoing, or total (Freeman) degree counts. This gives a very rough measure of how popular or central a node is in the network. 
+
+## Geodesic Distance
+
+**Geodesic Distance** is defined as "the length of the shortest path via the edges or binary connections between nodes." [(Kadushin 2012)](https://global.oup.com/academic/product/understanding-social-networks-9780195379471?q=Understanding%20Social%20Networks&lang=en&cc=us) Nodes that have a shorter average geodesic distance have greater access to the resources in a network, because any resources that exist would be more readily available.  
+```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
+data(florentine)
+gd = geodist(flomarriage)$gdist # geodist() calculates the geodesic distance for all nodes in the network, to every other node. This number is the shortest 'path' of ties from one node to another.
+colnames(gd) = flomarriage%v%"vertex.names"
+row.names(gd) = flomarriage%v%"vertex.names"
+par(par.d)
+plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, arrowhead.cex = 3, vertex.cex = 3)
+knitr::kable(gd)
 ```
+
+
+
+
+
+
+
+
+
+
+
+## K-Core
+
+**K-Core** measures the the minimum degree of nodes connected nodes in an area of the network. This results in rudimentary clustering of nodes by the lowest common degree.
+```{r, warning=FALSE}
+par(par.d)
+kc = kcores(flomarriage, mode="graph",diag=FALSE) # kcores() generdates a k-core number for each node in the network, and is best understood though visualization
+plot(flomarriage, main = "K-Cores", vertex.cex = 3, vertex.col = kc+1)
+```
+
+## Centrality
+
+**Centrality** measures how prominent a specific node is in a network. **Betweenness Centrality** measures the extent to which a specific node acts as a **broker**, or a person that bridges a gap between two groups. In the Florentine Marriage network, we can see that the Medici act as brokers between three otherwise disconnected segments in the network, giving them a monopoly on how resources flow between these desperate parts of the network. 
+```{r Brokers}
+b.col = rep("red", times = 16)
+b.col[1] = "blue"
+b.col[c(10, 14)] = "yellow"
+b.col[9] = "purple"
+b.col[12] = "black"
+plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, vertex.col = b.col, arrowhead.cex = 3, vertex.cex = 3)
+```
+
+```{r Betweenness, echo=TRUE}
+bt.o = betweenness(dat = flomarriage, gmode = "graph") #Gets the betweennes centrality measure for each node, with higher values indicating that more connections must flow through this node.
+names(bt.o) = flomarriage%v%"vertex.names"
+bt.o
+```
+
+Another form of centrality is **Eigenvector Centrality**, which is often called a measure of 'popular friends.' Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. A good example case is comparing the Acciaiuoli family, with the Lamberteschi family. Both are only connected with one other family, but one is connected to the Medici.   
+```{r Eigenvector}
+ev = evcent(flomarriage, gmode = "graph") # evcent() get te eigenvector centrality for each node in the network and returns a vector. Higher values means having more 'popular friends' 
+names(ev) = flomarriage%v%"vertex.names"
+ev
+```
+
+
+
+
 
 ------------------------------------------------------------------------
 
