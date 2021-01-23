@@ -227,11 +227,31 @@ Many node level measures are only helpful within the context of the network they
 
 ## Degree
 
-*Degree* counts of how many edges are connected to a node. You can count incoming, outgoing, or total (Freeman) degree counts. This gives a very rough measure of how popular or central a node is in the network. 
+*Degree* counts how many edges are connected to a node. You can count incoming, outgoing, or total (Freeman) degree. Incoming and outgoing degree only matter in directed networks. In un-directed networks, only total edges are applicable. Degree gives a very rough measure of how popular or central a node is in the network. If a node has more ties, it may indicate that node as being more central or important the network as a whole.
+
+Degree is a raw count of the number of edges a node has, this makes the interpretation of degree  highly dependent on the size of the network. In a small network with only 25 total edges, having 10 of them would be significant. In a larger network with 250 total edges, 10 edges could be less impressive. Degree should thus be interpreted in the cortex of other nodes in the network. 
+
+The example network below has node sizes scaled with their total degree numbers. You can click on any node to highlight only the edges connected to that node.
+
+```{r}
+.dir_node$value = c(3, 6, 4, 4, 3, 2, 2, 3, 2, 1)
+
+visNetwork(.dir_node, .dir_edge[,c("to", "from")], main = "Degree Example") %>% visInteraction(zoomView = FALSE)
+```
 
 ## Geodesic Distance
 
-**Geodesic Distance** is defined as "the length of the shortest path via the edges or binary connections between nodes." [(Kadushin 2012)](https://global.oup.com/academic/product/understanding-social-networks-9780195379471?q=Understanding%20Social%20Networks&lang=en&cc=us) Nodes that have a shorter average geodesic distance have greater access to the resources in a network, because any resources that exist would be more readily available.  
+**Geodesic Distance** is "the length of the shortest path via the edges or binary connections between nodes" [@kadushinUnderstandingSocialNetworks2012]. 
+
+
+
+Nodes that have a shorter average geodesic distance have greater access to the resources in a network, because any resources that exist would be more readily available.
+
+
+
+
+
+
 ```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
 data(florentine)
 gd = geodist(flomarriage)$gdist # geodist() calculates the geodesic distance for all nodes in the network, to every other node. This number is the shortest 'path' of ties from one node to another.
