@@ -184,7 +184,7 @@ toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Car
 
 The same data can also be displayed in a table format. The information is the same, but it is presented in a way more usable by our code to create measures we care out. In this format, every node has both a row and column. If there is an edge between two nodes, a 1 is placed in the intersection of their row and column.
 
-```{r}
+```{r echo=FALSE}
 knitr::kable(as.matrix(network(toy_edgelist)))
 ```
 
@@ -218,18 +218,17 @@ Now that we have our tools loaded, let's create out first network. We'll use the
 
 First we make the edgelist ...
 
-```{r message=FALSE, warning=FALSE, echo=TRUE}
+```{r message=FALSE, warning=FALSE}
 # create the edgelist
 toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Jesse Faden", "Ramona Flowers", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
 ```
 
 Then the attributes dataframe ...
 
-```{r message=FALSE, warning=FALSE, echo=TRUE}
+```{r message=FALSE, warning=FALSE}
 # create the attributes dataframe
 toy_attributes = data.frame(
-  "id" = 1:10,
-  "name" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
+  "id" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
   stringsAsFactors = FALSE)
 ```
 
@@ -251,9 +250,22 @@ Then we'll add the node attributes to the network object. If you run `summary` a
 
 ```{r}
 # add each attribute to network
+# do this by looking at every column, then adding it to the network
 for(col_name in colnames(toy_attributes)) {
     toy_network = set.vertex.attribute(x = toy_network, attrname = col_name, value=toy_attributes[,col_name])
 }
+```
+
+Let's see what out network looks like!
+
+```{r}
+plot(toy_network)
+```
+
+There we are. The default plotting in `statnet` is ugly. For the sake of our eyes, and for exploring some of the measure we create, we'll use the `visNetwork` package to visualize out networks. It will make the code a bit more cumbersome, but it will be worth it. Let's try that again with `visNetwork`. We'll give the `visNetwork` function our edgelist and attributes dataframe.
+
+```{r}
+visNetwork(nodes = toy_attributes, edges = toy_edgelist)
 ```
 
 # Graph Level Properties
@@ -271,11 +283,10 @@ Networks can either be *directed* or *un-directed*. A directed network treats th
 A directed network tracks which node is the source and which node is the receiver for an edge. Take for example the follow mechanic on Twitter. User A can follow User B, creating a directed edge from A to B, but B does not have to follow A in return. This can be useful when trying to understand the flows of resources that are finite such as money or goods.
 
 ```{r Directionality, echo=FALSE}
-.dir_node = data.frame("id" = 1:10)
-.dir_edge = data.frame("from" = c(3, 8, 1, 5, 6, 8, 2, 3, 4, 7, 2, 4, 3, 4, 3), "to" = c(1, 1, 2, 2, 2, 2, 4, 5, 5, 6, 7, 8, 9, 9, 10))
+
 .dir_edge$arrows = sample(c("to", "to;from"), 15, replace = TRUE)
 
-visNetwork(.dir_node, .dir_edge, main = "Directed") %>% visInteraction(zoomView = FALSE)
+visNetwork(toy_attributes, toy_edgelist, main = "Directed") %>% visInteraction(zoomView = FALSE)
 ```
 
 An un-directed network treats all ties as mutual, such that A and B are both involved equally in a tie. An example is the friend mechanic on Facebook. Once a friendship is established, both users are considered equal in the tie. This can be helpful when you do not have information on what node initiates a tie, or when events happen equally to a group of nodes, such as all nodes being connected through co-membership in a group.
