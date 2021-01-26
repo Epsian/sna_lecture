@@ -10,11 +10,12 @@ link-citations: TRUE
 ```{r setup, include=FALSE}
 library(knitr)
 library(rmdformats)
+library(statnet)
 library(visNetwork)
 
 ## Global options
 options(max.print="75")
-opts_chunk$set(echo=FALSE,
+opts_chunk$set(echo=TRUE,
 	             cache=TRUE,
                prompt=FALSE,
                tidy=TRUE,
@@ -24,7 +25,7 @@ opts_chunk$set(echo=FALSE,
 opts_knit$set(width=75)
 ```
 
-```{r links}
+```{r links, echo=FALSE}
 # emojis
 net_url1 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/male-teacher_emoji.png"
 net_url2 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/female-student_emoji.png"
@@ -148,6 +149,113 @@ knitr::include_graphics(net_url10)
 
 Network analysis has also been used for offensive purposes. One of the most prominent uses is mapping crime or terror networks [@krebsMappingNetworksTerrorist2002], though it is fraught with ethical concerns. There are specific tools made for this purpose, such as the *keyplayer* package [@anKeyplayerPackageLocating2016], which helps find what nodes in a network would fragment them the most if removed.
 
+# Network Data
+
+Networks are based on relational data. This means the core data requirement is that we have some measure of how nodes are connected. The two most common network data formats are the *edgelist* and *adjacency matrix*. Either of these will work for nearly any network purpose, and it is easy to convert between them. You will also need an *attributes* file, which gives information about the nodes being connected.
+
+## Edgelist
+
+An edgelist is a two-column dataframe with a *sender* and *receiver* column. Each row represents one edge or tie, with the possibility of adding in more information. Here is an example of a basic edgelist. 
+
+| from              | to                |
+|-------------------|-------------------|
+| Jesse Faden | Samantha Carter   |
+| Levi Ackerman | Samantha Carter   |
+| Samantha Carter | Alyx Vance    |
+| Ameiko Kaijitsu | Alyx Vance    |
+| Paul Atreides | Alyx Vance    |
+| Levi Ackerman | Alyx Vance    |
+| Alyx Vance | Ramona Flowers  |
+| Jesse Faden | Ameiko Kaijitsu |
+| Ramona Flowers | Ameiko Kaijitsu |
+| Gordon Freeman | Paul Atreides |
+| Alyx Vance | Gordon Freeman  |
+| Ramona Flowers | Levi Ackerman |
+| Jesse Faden | Spike Spiegel  |
+| Ramona Flowers | Spike Spiegel  |
+| Jesse Faden | Edward Elric    |
+
+```{r include=FALSE}
+# create this network silently for easy matrix conversion
+toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Jesse Faden", "Ramona Flowers", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
+```
+
+## Adjacency Matrix
+
+The same data can also be displayed in a table format. The information is the same, but it is presented in a way more usable by our code to create measures we care out. In this format, every node has both a row and column. If there is an edge between two nodes, a 1 is placed in the intersection of their row and column.
+
+```{r}
+knitr::kable(as.matrix(network(toy_edgelist)))
+```
+
+## Attributes
+
+Each network also typically has an attributes table, which looks just like typical tabular data, with each row belowing to a specific node in our network. For the examples above, our attribute table might look like the following:
+
+```{r include=FALSE}
+toy_attributes = data.frame(
+  "id" = 1:10,
+  "name" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
+  stringsAsFactors = FALSE)
+```
+
+```{r echo=FALSE}
+knitr::kable(toy_attributes)
+```
+
+## Create an Example Network
+
+Before we start exploring specific measures, let's create a toy network to use as an example. Let's start by loading in some packages.
+
+`statnet` is one of the major network packages in R. It allows you to compute many of the most common network measures, and run simulations called *Exponential Random Graph Models*. We'll stick with the basics for now! 
+
+```{r message=FALSE, warning=FALSE}
+# Run this to load statnet, if you need to install it, do so now.
+library(statnet)
+```
+
+Now that we have our tools loaded, let's create out first network. We'll use the data you saw before. This toy network will be used as a visual for learning the measurements below.
+
+First we make the edgelist ...
+
+```{r message=FALSE, warning=FALSE, echo=TRUE}
+# create the edgelist
+toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Jesse Faden", "Ramona Flowers", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
+```
+
+Then the attributes dataframe ...
+
+```{r message=FALSE, warning=FALSE, echo=TRUE}
+# create the attributes dataframe
+toy_attributes = data.frame(
+  "id" = 1:10,
+  "name" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
+  stringsAsFactors = FALSE)
+```
+
+Finally, we turn it into a `statnet` network object! A `statnet` network object is a special kind of list in R. It is formatted in a way that the other `statnet` functions expect. While you could edit it like a normal list, it is highly recommended you use the other `statnet` functions to manipulate this object to make sure you don't break any of the data expectations.
+
+We'll use the `network` function to create our network object.
+
+```{r}
+toy_network = network(toy_edgelist)
+```
+
+We can inspect our new network by calling the `summary` function on it. Don't worry too much about the output yet.
+
+```{r}
+summary(toy_network)
+```
+
+Then we'll add the node attributes to the network object. If you run `summary` again you should see the values from our `toy_attributes` has been added.
+
+```{r}
+# add each attribute to network
+for(col_name in colnames(toy_attributes)) {
+    toy_network = set.vertex.attribute(x = toy_network, attrname = col_name, value=toy_attributes[,col_name])
+}
+```
+
 # Graph Level Properties
 
 Now that we know what networks are and have some examples of how they are used, let's get into actually analyzing them. There are a number of metrics we can compute to understand the structure of a network as a whole.
@@ -209,7 +317,7 @@ visNetwork(data.frame("id" = 1:6), .star_edge, main = "Star Network") %>% visInt
 ```{r echo=FALSE}
 .loop_edge = data.frame("from" = c(1,2,3,4,5,6), "to" = c(2,3,4,5,6,1))
 
-visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network") %>% visInteraction(zoomView = FALSE)
+visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network") %>% visInteraction(zoomView = FALSE) %>% visLayout(randomSeed = 2)
 ```
 
 # Node Level Properties
@@ -218,9 +326,9 @@ Node level measures are numeric representations of a node's position and importa
 
 * Degree
 * Geodesic distance
-* k-core
 * Betweenness centrality
 * Eigenvector centrality
+* k-core
 * 
 
 Many node level measures are only helpful within the context of the network they were generated for. This is because the measures are created in part using network level measures like density. This means it is alright to compare one node to another within the same network, but toy should node compare the node level measures between networks.
@@ -233,78 +341,88 @@ Degree is a raw count of the number of edges a node has, this makes the interpre
 
 The example network below has node sizes scaled with their total degree numbers. You can click on any node to highlight only the edges connected to that node.
 
-```{r}
-.dir_node$value = c(3, 6, 4, 4, 3, 2, 2, 3, 2, 1)
+```{r echo=FALSE}
+.dir_node$value = c(3, 6, 4, 4, 3, 2, 2, 3, 2, 1)^3
 
 visNetwork(.dir_node, .dir_edge[,c("to", "from")], main = "Degree Example") %>% visInteraction(zoomView = FALSE)
 ```
 
 ## Geodesic Distance
 
-**Geodesic Distance** is "the length of the shortest path via the edges or binary connections between nodes" [@kadushinUnderstandingSocialNetworks2012]. 
+**Geodesic Distance** is "the length of the shortest path via the edges or binary connections between nodes" [@kadushinUnderstandingSocialNetworks2012]. In other words, if we treat the network as a map we can move along, with the nodes being stopping places and the edges being paths, the geodesic is the shortest possible path between two nodes, and that distance is how many edges we have to walk along for that shortest path. 
 
+Nodes that have a shorter average geodesic distance between all the other nodes in the network are considered to have have greater access to the resources in a network. This is because a node with a low average geodesic distance can theoretically "reach" the other nodes with less effort, because it does not need to travel as far in the network.
 
-
-Nodes that have a shorter average geodesic distance have greater access to the resources in a network, because any resources that exist would be more readily available.
-
-
-
-
-
+The example below plots a network, and shows each node's average geodesic distance below the node. The red node would need to travel through the whole network to reach the nodes on the opposite side and has the largest average geodesic distance. Meanwhile, the blue node has the smallest average geodesic distance because it is located near the middle of the network.
 
 ```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
-data(florentine)
-gd = geodist(flomarriage)$gdist # geodist() calculates the geodesic distance for all nodes in the network, to every other node. This number is the shortest 'path' of ties from one node to another.
-colnames(gd) = flomarriage%v%"vertex.names"
-row.names(gd) = flomarriage%v%"vertex.names"
-par(par.d)
-plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, arrowhead.cex = 3, vertex.cex = 3)
-knitr::kable(gd)
+# convert to network, find geodesics
+vis_net = network::network(.dir_edge[,c("from", "to")], directed = FALSE)
+vis_net%v%"mean.distance" = (colSums(geodist(vis_net)$gdist))/(nrow(as.sociomatrix(vis_net)) - 1)
+
+# default grey color
+.dir_node$color = c("grey")
+
+# add label as geodesic distance
+.dir_node$label = round(vis_net%v%"mean.distance", 3)
+
+# replace min with blue, max with red, add labels
+.dir_node$color[which(vis_net%v%"mean.distance" == max(vis_net%v%"mean.distance"))] = "red"
+.dir_node$color[which(vis_net%v%"mean.distance" == min(vis_net%v%"mean.distance"))] = "blue"
+
+# make sure edges are grey
+.dir_edge$color = "grey"
+
+# plot
+visNetwork(.dir_node[,-2], .dir_edge[,c("to", "from", "color")], main = "Geodesic Example") %>% visInteraction(zoomView = FALSE)
 ```
 
+## Betweenness Centrality
+
+**Betweenness Centrality** measures 
 
 
 
 
-
-
-
-
-
-
-## K-Core
-
-**K-Core** measures the the minimum degree of nodes connected nodes in an area of the network. This results in rudimentary clustering of nodes by the lowest common degree.
-```{r, warning=FALSE}
-par(par.d)
-kc = kcores(flomarriage, mode="graph",diag=FALSE) # kcores() generdates a k-core number for each node in the network, and is best understood though visualization
-plot(flomarriage, main = "K-Cores", vertex.cex = 3, vertex.col = kc+1)
-```
 
 ## Centrality
 
 **Centrality** measures how prominent a specific node is in a network. **Betweenness Centrality** measures the extent to which a specific node acts as a **broker**, or a person that bridges a gap between two groups. In the Florentine Marriage network, we can see that the Medici act as brokers between three otherwise disconnected segments in the network, giving them a monopoly on how resources flow between these desperate parts of the network. 
 ```{r Brokers}
-b.col = rep("red", times = 16)
-b.col[1] = "blue"
-b.col[c(10, 14)] = "yellow"
-b.col[9] = "purple"
-b.col[12] = "black"
-plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, vertex.col = b.col, arrowhead.cex = 3, vertex.cex = 3)
+#b.col = rep("red", times = 16)
+#b.col[1] = "blue"
+#b.col[c(10, 14)] = "yellow"
+#b.col[9] = "purple"
+#b.col[12] = "black"
+#plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, vertex.col = b.col, arrowhead.cex = 3, vertex.cex = 3)
 ```
 
 ```{r Betweenness, echo=TRUE}
-bt.o = betweenness(dat = flomarriage, gmode = "graph") #Gets the betweennes centrality measure for each node, with higher values indicating that more connections must flow through this node.
-names(bt.o) = flomarriage%v%"vertex.names"
-bt.o
+#bt.o = betweenness(dat = flomarriage, gmode = "graph") #Gets the betweennes centrality measure for each node, with higher values indicating that more connections must flow #through this node.
+#names(bt.o) = flomarriage%v%"vertex.names"
+#bt.o
 ```
 
 Another form of centrality is **Eigenvector Centrality**, which is often called a measure of 'popular friends.' Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. A good example case is comparing the Acciaiuoli family, with the Lamberteschi family. Both are only connected with one other family, but one is connected to the Medici.   
 ```{r Eigenvector}
-ev = evcent(flomarriage, gmode = "graph") # evcent() get te eigenvector centrality for each node in the network and returns a vector. Higher values means having more 'popular friends' 
-names(ev) = flomarriage%v%"vertex.names"
-ev
+#ev = evcent(flomarriage, gmode = "graph") # evcent() get te eigenvector centrality for each node in the network and returns a vector. Higher values means having more #'popular friends' 
+#names(ev) = flomarriage%v%"vertex.names"
+#ev
 ```
+
+## K-Core
+
+**K-Core** measures the the minimum degree of nodes connected nodes in an area of the network. This results in rudimentary clustering of nodes by the lowest common degree.
+
+```{r, warning=FALSE}
+#par(par.d)
+#kc = kcores(flomarriage, mode="graph",diag=FALSE) # kcores() generdates a k-core number for each node in the network, and is best understood though visualization
+#plot(flomarriage, main = "K-Cores", vertex.cex = 3, vertex.col = kc+1)
+```
+
+
+
+
 
 
 
