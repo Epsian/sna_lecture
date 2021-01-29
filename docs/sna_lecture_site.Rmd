@@ -229,15 +229,27 @@ Then the attributes dataframe ...
 # create the attributes dataframe
 toy_attributes = data.frame(
   "id" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
+  "age" = c(41, 24, 30, 24, 31, 33, 27, 33, 27, 18),
   stringsAsFactors = FALSE)
 ```
 
 Finally, we turn it into a `statnet` network object! A `statnet` network object is a special kind of list in R. It is formatted in a way that the other `statnet` functions expect. While you could edit it like a normal list, it is highly recommended you use the other `statnet` functions to manipulate this object to make sure you don't break any of the data expectations.
 
-We'll use the `network` function to create our network object.
+We'll use the `network` function to create our network object. Before we create it, we will sort our attributes file alphabetically. This is super important, as the network object will automatically sort things itself. **If we do not sort our attributes dataframe to match, all of our measure later will be misaligned!**
 
 ```{r}
-toy_network = network(toy_edgelist)
+# sort your attributes frame alphabetically. Super important!
+toy_attributes = toy_attributes[order(toy_attributes$id), ]
+
+# make network!
+toy_network = network(toy_edgelist, directed = FALSE)
+```
+
+Before we move on, let's add a `net_id` column to our attributes dataframe. This will let us easily check what the network object IDs are for our nodes.
+
+```{r}
+# add ID column
+toy_attributes$net_id = 1:nrow(toy_attributes)
 ```
 
 We can inspect our new network by calling the `summary` function on it. Don't worry too much about the output yet.
@@ -262,15 +274,22 @@ Let's see what out network looks like!
 plot(toy_network)
 ```
 
-There we are. The default plotting in `statnet` is ugly. For the sake of our eyes, and for exploring some of the measure we create, we'll use the `visNetwork` package to visualize out networks. It will make the code a bit more cumbersome, but it will be worth it. Let's try that again with `visNetwork`. We'll give the `visNetwork` function our edgelist and attributes dataframe.
+There we are. The default plotting in `statnet` is ugly. For the sake of our eyes, and for exploring some of the measure we create, we'll use the `visNetwork` package to visualize our networks. It will make the code a bit more cumbersome, but it will be worth it. From now on, we will need to use the edges and attributes dataframes for plotting. This means we will often need to run commands twice, once for the network and once for the dataframes. When you are working with networks for research, you would usually do everything you need on your network, than create a dataframe from it all at once. We will need to deal with a bit of redundancy to take things one step at a time.
+
+Let's try plotting again with `visNetwork`, using the dataframes. We'll give the `visNetwork` function our edgelist and attributes dataframe. We'll also tell it to plot the names from our attributes dataframe so we can see them when we hover over the nodes in the plot.
 
 ```{r}
-visNetwork(nodes = toy_attributes, edges = toy_edgelist)
+# add pop-up tooltips with names
+# visNetwork uses the "title" column to create pop-up boxes
+toy_attributes$title = toy_attributes$id
+
+# plot!
+visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
 ```
 
 # Graph Level Properties
 
-Now that we know what networks are and have some examples of how they are used, let's get into actually analyzing them. There are a number of metrics we can compute to understand the structure of a network as a whole.
+Now that we know what networks are and have some examples of how they are used and the data required, let's get into actually analyzing them. There are a number of measures we can compute to understand the structure of a network as a whole. We will go over some basic network level ones here. These are single measures or attributes used to describe the entire network, and can be used to compare one network against another.
 
 * Directed or Un-directed
 * Density
@@ -280,52 +299,63 @@ Now that we know what networks are and have some examples of how they are used, 
 
 Networks can either be *directed* or *un-directed*. A directed network treats the edges between nodes as having a specific direction of flow, while an un-directed network considers all edges to be mutual. An example of each is presented below.
 
-A directed network tracks which node is the source and which node is the receiver for an edge. Take for example the follow mechanic on Twitter. User A can follow User B, creating a directed edge from A to B, but B does not have to follow A in return. This can be useful when trying to understand the flows of resources that are finite such as money or goods.
+Both edgelist and adjacency matrix datasets are inherently directed. For edgelists, the sender is often the first column, and the receiver is the second. For adjacency matrices the rows are considered senders and columns are receivers. Directionality is often specified when the network objects are created. When we created our toy network, we specified `directed = FALSE` to simplify things. If you want a directed network, the default is `directed = TRUE` for `statnet` networks.
+
+A directed network tracks which node is the source and which node is the receiver for an edge. Take for example the *follow* mechanic on Twitter. User A can follow User B, creating a directed edge from A to B, but B does not have to follow A in return. This can be useful when trying to understand the flows of resources that are finite such as money or goods.
 
 ```{r Directionality, echo=FALSE}
+# visNetwork uses a column called "arrows" to show directionality in its plots.
+# For our edgelist, we'll just say every row is "to" for now
+toy_edgelist$arrows = "to"
 
-.dir_edge$arrows = sample(c("to", "to;from"), 15, replace = TRUE)
-
+# this will show us what our network would look like if it was directed.
 visNetwork(toy_attributes, toy_edgelist, main = "Directed") %>% visInteraction(zoomView = FALSE)
 ```
 
-An un-directed network treats all ties as mutual, such that A and B are both involved equally in a tie. An example is the friend mechanic on Facebook. Once a friendship is established, both users are considered equal in the tie. This can be helpful when you do not have information on what node initiates a tie, or when events happen equally to a group of nodes, such as all nodes being connected through co-membership in a group.
+An un-directed network treats all ties as mutual, such that A and B are both involved equally in a tie. An example is the *friend* mechanic on Facebook. Once a friendship is established, both users are considered equal in the tie. This can be helpful when you do not have information on what node initiates a tie, or when events happen equally to a group of nodes, such as all nodes being connected through co-membership in a group.
 
 ```{r echo=FALSE}
-visNetwork(.dir_node, .dir_edge[,1:2], main = "Un-directed") %>% visInteraction(zoomView = FALSE)
+# lets drop the arrow column for now since our network is un-directed.
+toy_edgelist = toy_edgelist[,c("from", "to")]
+
+visNetwork(toy_attributes, toy_edgelist, main = "Un-directed") %>% visInteraction(zoomView = FALSE)
 ```
 
 Which of these will be useful to you will likely change from project to project. However, it is vital to understand what kind of network you are working with, as many network calculations we will talk about later change their behavior based on if the network is directed or not.
 
 ## Density
 
-*Density* is the first real graph level metric that helps you understand what is particular about the network you are looking at. The density of a network is a numerical score showing how many ties exist in a network, given the max possible in that network. Mathematically that is $\frac{Actual Edges}{Possible Edges}$, where actual edges is the number of edges in the netowrk, and possible edges is the number of edges if every single node in the network was connected to every other node.
+*Density* is the first real graph level metric that helps you understand what is particular about the network you are looking at. The density of a network is a numerical score showing how many ties exist in a network, given the max possible in that network. Mathematically that is $\frac{Actual Edges}{Possible Edges}$, where actual edges is the number of edges in the network, and possible edges is the number of edges if every single node in the network was connected to every other node.
 
 Networks that are more densely connected are considered to be more cohesive and robust. This means that the removal of any specific edge or node will not have a great effect of the network as a whole. It also typically means that any one node in the network will be more likely to have access to whatever resources are in the network, as there are more potential connections in the network to search for resources.
 
+To calculate the density of a network, we use the `network.density()` function. You can also see it if you use `summary()` on your network object. Below is our toy network and a less dense version to try and visualize the difference. Density is all about how many edges exist in the network. Notice that there are the same number of nodes in both of these networks.
+
 ```{r echo=FALSE}
-visNetwork(.dir_node, .dir_edge[,1:2], main = "High Density") %>% visInteraction(zoomView = FALSE)
+visNetwork(toy_attributes, toy_edgelist, main = "High Density") %>% visInteraction(zoomView = FALSE)
 ```
 
 ```{r echo=FALSE}
-visNetwork(.dir_node, .dir_edge[c(1:5,7,10,13,15),1:2], main = "Low Density") %>% visInteraction(zoomView = FALSE)
+visNetwork(toy_attributes, toy_edgelist[c(1:5,7,10,13,15),1:2], main = "Low Density") %>% visInteraction(zoomView = FALSE)
 ```
 
 ## Centralization
 
-*Freeman Centralization* gives a sense of the shape of the network, namely how node level measures are distributed in a network. We'll discuss node level measures next, but for now it is only important to understand that node level measures are numeric scores assigned to specific nodes rather than the network as a whole. This means that each node may have a different value.
+*Freeman Centralization* (usually just called *centralization*) gives a sense of the shape of the network, namely how node level measures are distributed in a network. We'll discuss node level measures next, but for now it is only important to understand that node level measures are numeric scores assigned to specific nodes rather than the network as a whole. This means that each node may have a different value.
 
 Consider the two networks below. The first "star" network would be considered highly centralized, as one node connects to all the others, while the rest of the nodes have no connections to each other. This star network would have a edge centralization score of 1, as 100% of the ties are connected with one node. The loop network would have a score of 0, as every node is equally connected to each other.
 
 Centralization is a measure of how unevenly node level metrics are distributed in a network. This is helpful when trying to understand if some nodes in the network have a larger influence, or are is some way more important than others. 
 
 ```{r echo=FALSE}
+# create a dummy network to show the star shape
 .star_edge = data.frame("from" = c(1,2,3,4,5), "to" = c(6,6,6,6,6))
 
 visNetwork(data.frame("id" = 1:6), .star_edge, main = "Star Network") %>% visInteraction(zoomView = FALSE)
 ```
 
 ```{r echo=FALSE}
+# create a dummy network to show the loop shape
 .loop_edge = data.frame("from" = c(1,2,3,4,5,6), "to" = c(2,3,4,5,6,1))
 
 visNetwork(data.frame("id" = 1:6), .loop_edge, main = "Loop Network") %>% visInteraction(zoomView = FALSE) %>% visLayout(randomSeed = 2)
@@ -342,20 +372,29 @@ Node level measures are numeric representations of a node's position and importa
 * k-core
 * 
 
-Many node level measures are only helpful within the context of the network they were generated for. This is because the measures are created in part using network level measures like density. This means it is alright to compare one node to another within the same network, but toy should node compare the node level measures between networks.
+Most node level measures are only helpful within the context of the network they were generated for. This is because the measures are created in part using network level measures like density. This means it is alright to compare one node to another within the same network, but toy should node compare the node level measures between networks.
 
 ## Degree
 
 *Degree* counts how many edges are connected to a node. You can count incoming, outgoing, or total (Freeman) degree. Incoming and outgoing degree only matter in directed networks. In un-directed networks, only total edges are applicable. Degree gives a very rough measure of how popular or central a node is in the network. If a node has more ties, it may indicate that node as being more central or important the network as a whole.
 
-Degree is a raw count of the number of edges a node has, this makes the interpretation of degree  highly dependent on the size of the network. In a small network with only 25 total edges, having 10 of them would be significant. In a larger network with 250 total edges, 10 edges could be less impressive. Degree should thus be interpreted in the cortex of other nodes in the network. 
+Degree is a raw count of the number of edges a node has, this makes the interpretation of degree highly dependent on the size of the network. In a small network with only 25 total edges, having 10 of them would be significant. In a larger network with 250 total edges, 10 edges could be less impressive. Degree should thus be interpreted in the cortex of other nodes in the network. 
 
-The example network below has node sizes scaled with their total degree numbers. You can click on any node to highlight only the edges connected to that node.
+Let's scale the node sizes of our toy network based on their total degree numbers. We'll get degree counts for each of our nodes using the `degree()` function. We can save that into our dataframe and network for use later. For now I am naming columns to work specifically with `visNetwork`, we'll make a proper dataframe for analyses later using data we saved in the network object. In our visualization, you can click on any node to highlight only the edges connected to that node.
 
 ```{r echo=FALSE}
-.dir_node$value = c(3, 6, 4, 4, 3, 2, 2, 3, 2, 1)^3
+# find the degree of each node and save in the network
+# we will use the special `%v%` operator when assigning values to a network. `%v%` works like `$` for dataframes, allowing you to ask for specific values in the network
+# in this case `%v%` stands for vertex, and you can use `%e%` if you want to work with edges.
+# so let's get the degree counts, andassign them to the "degree" variable in our network object
+toy_network%v%"degree" = degree(toy_network)
 
-visNetwork(.dir_node, .dir_edge[,c("to", "from")], main = "Degree Example") %>% visInteraction(zoomView = FALSE)
+# visNetwork uses the "value" column to determine node size, so let's put it there as well for now.
+# we'll square the values just to make them more distinct
+toy_attributes$value = degree(toy_network)^2
+
+# plot!
+visNetwork(toy_attributes, toy_edgelist, main = "Degree Example") %>% visInteraction(zoomView = FALSE)
 ```
 
 ## Geodesic Distance
@@ -364,28 +403,43 @@ visNetwork(.dir_node, .dir_edge[,c("to", "from")], main = "Degree Example") %>% 
 
 Nodes that have a shorter average geodesic distance between all the other nodes in the network are considered to have have greater access to the resources in a network. This is because a node with a low average geodesic distance can theoretically "reach" the other nodes with less effort, because it does not need to travel as far in the network.
 
-The example below plots a network, and shows each node's average geodesic distance below the node. The red node would need to travel through the whole network to reach the nodes on the opposite side and has the largest average geodesic distance. Meanwhile, the blue node has the smallest average geodesic distance because it is located near the middle of the network.
+To find the mean geodesic distance for each node in the network we will first need to find the geodesic distance from each node to every other node, then take the mean. Not super difficult, but there isn't a single function to do it for us. First we will use the `geodist()` function to get all the geodesics.
+
+```{r}
+# get all the geodesics
+# I use the $gdist so we only get geodesics not counts
+geodist(toy_network)$gdist
+```
+This output is just like an adjacency matrix, with row and columns being the network node IDs (`net_id` in out attributes dataframe). Next we would want sum all the columns for each row (so adding up all the geodesics for a node), and divide by the total number of nodes it can have an edge with to get the average geodesic distance for that node. This gives us the average geodesic distance for each node!
+
+```{r}
+# colsums gives us the sum of all columns for a row
+# we subtract one from the denominator becasue a node cannot have a geodesic distance with itself
+colSums(geodist(toy_network)$gdist) / (nrow(as.sociomatrix(toy_network)) - 1)
+```
+
+Lets add thus to our network and plot it. I will also add some color and labels so it is easier to see what this measure means. The red node has the longest average geodesic distance, and would need to travel through the whole network to reach the nodes on the opposite side. Meanwhile, the blue node has the smallest average geodesic distance because it is located near the middle of the network.
 
 ```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
-# convert to network, find geodesics
-vis_net = network::network(.dir_edge[,c("from", "to")], directed = FALSE)
-vis_net%v%"mean.distance" = (colSums(geodist(vis_net)$gdist))/(nrow(as.sociomatrix(vis_net)) - 1)
+# add mean geodesic distance to network onbject
+toy_network%v%"mean.distance" = 
+  (colSums(geodist(toy_network)$gdist))/(nrow(as.sociomatrix(toy_network)) - 1)
 
-# default grey color
-.dir_node$color = c("grey")
+# set all node colors in visNetwork to grey as default
+toy_attributes$color = c("grey")
 
-# add label as geodesic distance
-.dir_node$label = round(vis_net%v%"mean.distance", 3)
+# add label as geodesic distance, rounding to 3 digits
+toy_attributes$label = round(toy_network%v%"mean.distance", 3)
 
-# replace min with blue, max with red, add labels
-.dir_node$color[which(vis_net%v%"mean.distance" == max(vis_net%v%"mean.distance"))] = "red"
-.dir_node$color[which(vis_net%v%"mean.distance" == min(vis_net%v%"mean.distance"))] = "blue"
+# replace min average geodesic with blue, max with red
+toy_attributes$color[which(toy_network%v%"mean.distance" == max(toy_network%v%"mean.distance"))] = "red"
+toy_attributes$color[which(toy_network%v%"mean.distance" == min(toy_network%v%"mean.distance"))] = "blue"
 
-# make sure edges are grey
-.dir_edge$color = "grey"
+# make sure edges are grey too
+toy_edgelist$color = "grey"
 
 # plot
-visNetwork(.dir_node[,-2], .dir_edge[,c("to", "from", "color")], main = "Geodesic Example") %>% visInteraction(zoomView = FALSE)
+visNetwork(toy_attributes, toy_edgelist, main = "Geodesic Example") %>% visInteraction(zoomView = FALSE)
 ```
 
 ## Betweenness Centrality
