@@ -421,7 +421,7 @@ colSums(geodist(toy_network)$gdist) / (nrow(as.sociomatrix(toy_network)) - 1)
 Lets add thus to our network and plot it. I will also add some color and labels so it is easier to see what this measure means. The red node has the longest average geodesic distance, and would need to travel through the whole network to reach the nodes on the opposite side. Meanwhile, the blue node has the smallest average geodesic distance because it is located near the middle of the network.
 
 ```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
-# add mean geodesic distance to network onbject
+# add mean geodesic distance to network object
 toy_network%v%"mean.distance" = 
   (colSums(geodist(toy_network)$gdist))/(nrow(as.sociomatrix(toy_network)) - 1)
 
@@ -441,10 +441,25 @@ toy_edgelist$color = "grey"
 # plot
 visNetwork(toy_attributes, toy_edgelist, main = "Geodesic Example") %>% visInteraction(zoomView = FALSE)
 ```
+Note that while there is a correlation between degree counts (node size) and mean geodesic distance, one does not cause the other. This is our first instance of how network structure, not node attributes, can inform us about the nodes in a network. Essentially, looking at the network as a whole can tell us things about the people in it that is lost if we look only at individuals.
 
-## Betweenness Centrality
+## Centrality
 
-**Betweenness Centrality** measures 
+Centrality scores encompass a wide range of measures computed at the node level. Each tries to understand the importance of a single node within the structure of a network by looking at the nodes connection patterns to other nodes. Any centrality measure can be used to create a network level centralization score like we discussed above. We will go through some of the common centrality measures here, but know there are several more we will not cover.
+
+### Betweenness Centrality
+
+**Betweenness Centrality** is commonly known as a measure of "popular friends." Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. Nodes with low degree can have high eigenvector scores if they are connected to important nodes.
+
+```{r eigenvector, echo=TRUE, message=FALSE, warning=FALSE}
+# add eigenvector centrality to network object as "evc"
+# we also tell it we are treating our data as undirected ("graph"), rather than the default directed ("digraph")
+toy_network%v%"evc" = evcent(toy_network, gmode = "graph")
+
+# plot
+visNetwork(toy_attributes, toy_edgelist, main = "Eigenvector Centrality Example") %>% visInteraction(zoomView = FALSE)
+```
+
 
 
 
