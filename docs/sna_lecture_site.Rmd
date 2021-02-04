@@ -162,22 +162,22 @@ An edgelist is a two-column dataframe with a *sender* and *receiver* column. Eac
 | Jesse Faden | Samantha Carter   |
 | Levi Ackerman | Samantha Carter   |
 | Samantha Carter | Alyx Vance    |
-| Ameiko Kaijitsu | Alyx Vance    |
+| Ameiko Kaijitsu | Levi Ackerman    |
 | Paul Atreides | Alyx Vance    |
-| Levi Ackerman | Alyx Vance    |
+| Levi Ackerman | Jesse Faden    |
 | Alyx Vance | Ramona Flowers  |
 | Jesse Faden | Ameiko Kaijitsu |
 | Ramona Flowers | Ameiko Kaijitsu |
 | Gordon Freeman | Paul Atreides |
 | Alyx Vance | Gordon Freeman  |
 | Ramona Flowers | Levi Ackerman |
-| Jesse Faden | Spike Spiegel  |
-| Ramona Flowers | Spike Spiegel  |
+| Gordon Freeman | Spike Spiegel  |
+| Alyx Vance | Spike Spiegel  |
 | Jesse Faden | Edward Elric    |
 
 ```{r include=FALSE}
 # create this network silently for easy matrix conversion
-toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Jesse Faden", "Ramona Flowers", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
+toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
 ```
 
 ## Adjacency Matrix
@@ -220,7 +220,7 @@ First we make the edgelist ...
 
 ```{r message=FALSE, warning=FALSE}
 # create the edgelist
-toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Jesse Faden", "Ramona Flowers", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Alyx Vance", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
+toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
 ```
 
 Then the attributes dataframe ...
@@ -449,12 +449,58 @@ Centrality scores encompass a wide range of measures computed at the node level.
 
 ### Betweenness Centrality
 
-**Betweenness Centrality** is commonly known as a measure of "popular friends." Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. Nodes with low degree can have high eigenvector scores if they are connected to important nodes.
+**Betweenness Centrality** is one of the most common centrality measures. It tries to calculate the extent to which a node acts as a gatekeeper or *broker* in the network. A broker bridges two otherwise disconnected segments in a network. If there are two parts of a network that would otherwise be broken apart if a node was removed, they would have a high betweenness centrality. The fragmenting of a network is not a prerequisite however, simply acting as an effective "shortcut" in a network can also raise a node's betweenness centrality. Betweenness is calculated using geodesic distances, and gives a higher score to nodes that lie on more geodesic paths.
+
+The next network plot shows the size of nodes as their degree, with a label showing their betweenness centrality score. Centrality score are usually normalized such that their scores all sum to 1. This way, you can easily compare nodes within the network (but not between networks), and understand how nodes relate to each other structurally. It is possible for a node to have a 0 betweenness score if no geodesic distances pass through them.
+
+Like last time I've colored the nodes so that the node with the highest betweenness centrality is red, while the lowest is blue. Compared to distance however, it is considered advantageous to have a *high* betweenness centrality, as this means that nodes acts as a gatekeeper in the network, which can be a powerful position. Contrast this with having a *low* mean distance, which meant you were closer to all other nodes.
+
+```{r betweenness, echo=TRUE, message=FALSE, warning=FALSE}
+# add eigenvector centrality to network object as "norm_betweenness"
+# we also tell it we are treating our data as un-directed ("graph"), rather than the default directed ("digraph")
+# we also say we want a normalized (0-1, sum to 1) score using `rescale = TRUE`
+toy_network%v%"norm_betweenness" = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE)
+
+# add label as geodesic distance, rounding to 3 digits
+toy_attributes$label = round(toy_network%v%"norm_betweenness", 3)
+
+# reset all nodes to grey
+toy_attributes$color = c("grey")
+
+# replace min average geodesic with blue, max with red
+toy_attributes$color[which(toy_network%v%"norm_betweenness" == max(toy_network%v%"norm_betweenness"))] = "red"
+toy_attributes$color[which(toy_network%v%"norm_betweenness" == min(toy_network%v%"norm_betweenness"))] = "blue"
+
+# plot
+visNetwork(toy_attributes, toy_edgelist, main = "Betweenness Centrality Example") %>% visInteraction(zoomView = FALSE)
+```
+
+### Eigenvector Centrality
+
+**Eigenvector Centrality** is commonly known as a measure of "popular friends." Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. Nodes with low degree can have high eigenvector scores if they are connected to important nodes.
+
+
+
+
+
+
+ Like last time I've colored the nodes so that the node with the highest eigenvector centrality is red, while the lowest is blue. It is considered advantageous to have a *high* eigenvector centrality, as this means you are well connected to other popular nodes.
 
 ```{r eigenvector, echo=TRUE, message=FALSE, warning=FALSE}
 # add eigenvector centrality to network object as "evc"
-# we also tell it we are treating our data as undirected ("graph"), rather than the default directed ("digraph")
-toy_network%v%"evc" = evcent(toy_network, gmode = "graph")
+# we also tell it we are treating our data as un-directed ("graph"), rather than the default directed ("digraph")
+# we also say we want a normalized (0-1, sum to 1) score using `rescale = TRUE`
+toy_network%v%"evc" = evcent(toy_network, gmode = "graph", rescale = TRUE)
+
+# add label as geodesic distance, rounding to 3 digits
+toy_attributes$label = round(toy_network%v%"evc", 3)
+
+# reset all nodes to grey
+toy_attributes$color = c("grey")
+
+# replace min average geodesic with blue, max with red
+toy_attributes$color[which(toy_network%v%"evc" == max(toy_network%v%"evc"))] = "red"
+toy_attributes$color[which(toy_network%v%"evc" == min(toy_network%v%"evc"))] = "blue"
 
 # plot
 visNetwork(toy_attributes, toy_edgelist, main = "Eigenvector Centrality Example") %>% visInteraction(zoomView = FALSE)
