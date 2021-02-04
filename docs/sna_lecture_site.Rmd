@@ -516,7 +516,7 @@ toy_attributes$label = toy_network%v%"kcore"
 toy_attributes$color = c("grey")
 
 # plot node colors according to kcore
-toy_attributes$color = toy_network%v%"kcore"
+toy_attributes$color = colors(distinct = TRUE)[toy_network%v%"kcore" + 50]
 
 # plot
 visNetwork(toy_attributes, toy_edgelist, main = "K-core Example") %>% visInteraction(zoomView = FALSE)
