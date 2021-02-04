@@ -457,9 +457,9 @@ Like last time I've colored the nodes so that the node with the highest betweenn
 
 ```{r betweenness, echo=TRUE, message=FALSE, warning=FALSE}
 # add eigenvector centrality to network object as "norm_betweenness"
-# we also tell it we are treating our data as un-directed ("graph"), rather than the default directed ("digraph")
+# we also tell it we are treating our data as un-directed ("graph"), rather than the default directed ("digraph"), same with `cmode = "undirected"`
 # we also say we want a normalized (0-1, sum to 1) score using `rescale = TRUE`
-toy_network%v%"norm_betweenness" = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE)
+toy_network%v%"norm_betweenness" = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE, cmode = "undirected")
 
 # add label as geodesic distance, rounding to 3 digits
 toy_attributes$label = round(toy_network%v%"norm_betweenness", 3)
@@ -477,14 +477,9 @@ visNetwork(toy_attributes, toy_edgelist, main = "Betweenness Centrality Example"
 
 ### Eigenvector Centrality
 
-**Eigenvector Centrality** is commonly known as a measure of "popular friends." Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. Nodes with low degree can have high eigenvector scores if they are connected to important nodes.
+**Eigenvector Centrality** is commonly known as a measure of "popular friends." Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. Nodes with low degree can have high eigenvector scores if they are connected to important nodes. In real life networks this can be interpreted as being close to influential others in a network.
 
-
-
-
-
-
- Like last time I've colored the nodes so that the node with the highest eigenvector centrality is red, while the lowest is blue. It is considered advantageous to have a *high* eigenvector centrality, as this means you are well connected to other popular nodes.
+I've colored the nodes so that the node with the highest eigenvector centrality is red, while the lowest is blue. It is considered advantageous to have a *high* eigenvector centrality, as this means you are well connected to other popular nodes.
 
 ```{r eigenvector, echo=TRUE, message=FALSE, warning=FALSE}
 # add eigenvector centrality to network object as "evc"
@@ -506,39 +501,28 @@ toy_attributes$color[which(toy_network%v%"evc" == min(toy_network%v%"evc"))] = "
 visNetwork(toy_attributes, toy_edgelist, main = "Eigenvector Centrality Example") %>% visInteraction(zoomView = FALSE)
 ```
 
-
-
-
-
-
-## Centrality
-
-**Centrality** measures how prominent a specific node is in a network. **Betweenness Centrality** measures the extent to which a specific node acts as a **broker**, or a person that bridges a gap between two groups. In the Florentine Marriage network, we can see that the Medici act as brokers between three otherwise disconnected segments in the network, giving them a monopoly on how resources flow between these desperate parts of the network. 
-```{r Brokers}
-#b.col = rep("red", times = 16)
-#b.col[1] = "blue"
-#b.col[c(10, 14)] = "yellow"
-#b.col[9] = "purple"
-#b.col[12] = "black"
-#plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, vertex.col = b.col, arrowhead.cex = 3, vertex.cex = 3)
-```
-
-```{r Betweenness, echo=TRUE}
-#bt.o = betweenness(dat = flomarriage, gmode = "graph") #Gets the betweennes centrality measure for each node, with higher values indicating that more connections must flow #through this node.
-#names(bt.o) = flomarriage%v%"vertex.names"
-#bt.o
-```
-
-Another form of centrality is **Eigenvector Centrality**, which is often called a measure of 'popular friends.' Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. A good example case is comparing the Acciaiuoli family, with the Lamberteschi family. Both are only connected with one other family, but one is connected to the Medici.   
-```{r Eigenvector}
-#ev = evcent(flomarriage, gmode = "graph") # evcent() get te eigenvector centrality for each node in the network and returns a vector. Higher values means having more #'popular friends' 
-#names(ev) = flomarriage%v%"vertex.names"
-#ev
-```
-
 ## K-Core
 
-**K-Core** measures the the minimum degree of nodes connected nodes in an area of the network. This results in rudimentary clustering of nodes by the lowest common degree.
+**K-Core** help find highly connected segments in a network. These clusters are a rudimentary measure of community in a network, though much more nuanced tools exist. Nodes are part of a k-core if all others in the group are connected with *k* other nodes. So for example a group would be a 3-core if every node was connected to at least 3 other nodes in a cluster.
+
+```{r}
+# compute kcore and save to "kcore"
+toy_network%v%"kcore" = kcores(toy_network, mode = "graph")
+
+# change labels to kcore
+toy_attributes$label = toy_network%v%"kcore"
+
+# reset all nodes to grey
+toy_attributes$color = c("grey")
+
+# plot node colors according to kcore
+toy_attributes$color = toy_network%v%"kcore"
+
+# plot
+visNetwork(toy_attributes, toy_edgelist, main = "K-core Example") %>% visInteraction(zoomView = FALSE)
+```
+
+
 
 ```{r, warning=FALSE}
 #par(par.d)
