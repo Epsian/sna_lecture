@@ -68,7 +68,7 @@ By the end of this class meeting, students should be able to:
 -   SNA Data
 -   Network (graph) level properties
 -   Individual (node) level properties
--   SNA Tools
+-   Network Tools
 -   Guided Homework Start/Question Time
 
 # What is Network Analysis
@@ -188,9 +188,13 @@ The same data can also be displayed in a table format. The information is the sa
 knitr::kable(as.matrix(network(toy_edgelist)))
 ```
 
+## Edge Weights
+
+Edges can also have weights, meaning some edges are valued more than others. In an edgelist, you can add a third "weight" column, entering higher numbers to denote a more important connection. In an adjacency matrix, you can put numbers other than 1 in the intersection to denote more important connections. For our example, we'll stick with un-weighted connections for now.
+
 ## Attributes
 
-Each network also typically has an attributes table, which looks just like typical tabular data, with each row belowing to a specific node in our network. For the examples above, our attribute table might look like the following:
+Each network also typically has an attributes table, which looks just like typical tabular data, with each row belonging to a specific node in our network. For the examples above, our attribute table might look like the following:
 
 ```{r include=FALSE}
 toy_attributes = data.frame(
@@ -285,6 +289,38 @@ toy_attributes$title = toy_attributes$id
 
 # plot!
 visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
+```
+
+## Limitations of Network Data
+
+Before we move on we should take a moment to talk about some the the caveats when suing network data. Network analysis is very vulnerable to missing data. A simple way to understand why is to make a small adjustment to our network.
+
+I've highlighted one node in green. This node is structurally vital to the network we see now.
+
+```{r net_data_vulnerability}
+# make hidden betweenness scale
+.vul_bet = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE, cmode = "undirected")
+
+# make dummy attribute and edgelist for this example plot
+.vul_att = toy_attributes
+.vul_edge = toy_edgelist
+
+# set color of edges and nodes to grey
+.vul_att$color = "grey"
+.vul_edge$color = "grey"
+
+# set node with highest betweenness to green
+.vul_att$color[which(.vul_bet == max(.vul_bet))] = "green"
+
+# plot
+visNetwork(nodes = .vul_att, edges = .vul_edge) %>% visInteraction(zoomView = FALSE)
+```
+
+If we remove this node, the network changes in a major way! Imagine these nodes are people, and that missing node is the *one* person you forget to survey, or was sick the day data was collected. This could massively change the outcome of your analyses. There is some advanced research going on to detect and replace missing data like this if you have enough context, but it is not something to rely on.
+
+```{r net_data_vulnerability_missing}
+# plot
+visNetwork(nodes = .vul_att[.vul_att$color != "green",], edges = .vul_edge) %>% visInteraction(zoomView = FALSE)
 ```
 
 # Graph Level Properties
@@ -522,24 +558,17 @@ toy_attributes$color = colors(distinct = TRUE)[toy_network%v%"kcore" + 50]
 visNetwork(toy_attributes, toy_edgelist, main = "K-core Example") %>% visInteraction(zoomView = FALSE)
 ```
 
+# Network Tools
 
+There are several ways to interact with network data in R. Thus far we have been using a combination of `statnet` for analysis and `visNetwork` for visualization. Next we'll dig deeper into these tools and explore other options.
 
-```{r, warning=FALSE}
-#par(par.d)
-#kc = kcores(flomarriage, mode="graph",diag=FALSE) # kcores() generdates a k-core number for each node in the network, and is best understood though visualization
-#plot(flomarriage, main = "K-Cores", vertex.cex = 3, vertex.col = kc+1)
-```
+## statnet
 
-
-
-
-
+`statnet` is one of the two largest network packages in R. 
 
 
 
 
 ------------------------------------------------------------------------
-
-# ADD SOMETHING ABOUT WEIGHTED EDGES
 
 # References
