@@ -155,29 +155,14 @@ Networks are based on relational data. This means the core data requirement is t
 
 ## Edgelist
 
-An edgelist is a two-column dataframe with a *sender* and *receiver* column. Each row represents one edge or tie, with the possibility of adding in more information. Here is an example of a basic edgelist. 
+An edgelist is a two-column dataframe with a *from* and *to* column. Each row represents one edge or tie, with the possibility of adding in more information. Here is an example of a basic edgelist. Let's load in the example data you downloaded and look at some of it. 
 
-| from              | to                |
-|-------------------|-------------------|
-| Jesse Faden | Samantha Carter   |
-| Levi Ackerman | Samantha Carter   |
-| Samantha Carter | Alyx Vance    |
-| Ameiko Kaijitsu | Levi Ackerman    |
-| Paul Atreides | Alyx Vance    |
-| Levi Ackerman | Jesse Faden    |
-| Alyx Vance | Ramona Flowers  |
-| Jesse Faden | Ameiko Kaijitsu |
-| Ramona Flowers | Ameiko Kaijitsu |
-| Gordon Freeman | Paul Atreides |
-| Alyx Vance | Gordon Freeman  |
-| Ramona Flowers | Levi Ackerman |
-| Gordon Freeman | Spike Spiegel  |
-| Alyx Vance | Spike Spiegel  |
-| Jesse Faden | Edward Elric    |
+```{r}
+# load in the data
+toy_edgelist = read.csv("./data/toy_edgelist.csv", header = TRUE, stringsAsFactors = FALSE)
 
-```{r include=FALSE}
-# create this network silently for easy matrix conversion
-toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
+# show the first 10 rows
+kable(head(toy_edgelist, n = 10))
 ```
 
 ## Adjacency Matrix
@@ -185,7 +170,7 @@ toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Car
 The same data can also be displayed in a table format. The information is the same, but it is presented in a way more usable by our code to create measures we care out. In this format, every node has both a row and column. If there is an edge between two nodes, a 1 is placed in the intersection of their row and column.
 
 ```{r echo=FALSE}
-knitr::kable(as.matrix(network(toy_edgelist)))
+knitr::kable(as.matrix(network(head(toy_edgelist, n = 10))))
 ```
 
 ## Edge Weights
@@ -194,22 +179,19 @@ Edges can also have weights, meaning some edges are valued more than others. In 
 
 ## Attributes
 
-Each network also typically has an attributes table, which looks just like typical tabular data, with each row belonging to a specific node in our network. For the examples above, our attribute table might look like the following:
+Each network also typically has an attributes table, which looks just like typical tabular data, with each row belonging to a specific node in our network. Let's load in and look at the sample attributes file.
 
-```{r include=FALSE}
-toy_attributes = data.frame(
-  "id" = 1:10,
-  "name" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
-  stringsAsFactors = FALSE)
-```
+```{r}
+# load in data
+toy_attributes = read.csv("./data/toy_attributes.csv", header = TRUE, stringsAsFactors = FALSE)
 
-```{r echo=FALSE}
-knitr::kable(toy_attributes)
+# show to of attributes table
+kable(head(toy_attributes, n = 10))
 ```
 
 ## Create an Example Network
 
-Before we start exploring specific measures, let's create a toy network to use as an example. Let's start by loading in some packages.
+Before we start exploring specific measures, we'll create a toy network to use as an example. Let's start by loading in some packages.
 
 `statnet` is one of the major network packages in R. It allows you to compute many of the most common network measures, and run simulations called *Exponential Random Graph Models*. We'll stick with the basics for now! 
 
@@ -218,26 +200,9 @@ Before we start exploring specific measures, let's create a toy network to use a
 library(statnet)
 ```
 
-Now that we have our tools loaded, let's create out first network. We'll use the data you saw before. This toy network will be used as a visual for learning the measurements below.
+Now that we have our tools loaded, let's create out first network. We'll use the data you loaded in before. This toy network will be used as a visual for learning the measurements below.
 
-First we make the edgelist ...
-
-```{r message=FALSE, warning=FALSE}
-# create the edgelist
-toy_edgelist = data.frame(from = c("Jesse Faden", "Levi Ackerman", "Samantha Carter", "Ameiko Kaijitsu", "Paul Atreides", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Ramona Flowers", "Gordon Freeman", "Alyx Vance", "Jesse Faden"), to = c("Samantha Carter", "Samantha Carter", "Alyx Vance", "Levi Ackerman", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Spike Spiegel", "Edward Elric"), stringsAsFactors = FALSE)
-```
-
-Then the attributes dataframe ...
-
-```{r message=FALSE, warning=FALSE}
-# create the attributes dataframe
-toy_attributes = data.frame(
-  "id" = c("Samantha Carter", "Alyx Vance", "Jesse Faden", "Ramona Flowers", "Ameiko Kaijitsu", "Paul Atreides", "Gordon Freeman", "Levi Ackerman", "Spike Spiegel", "Edward Elric"),
-  "age" = c(41, 24, 30, 24, 31, 33, 27, 33, 27, 18),
-  stringsAsFactors = FALSE)
-```
-
-Finally, we turn it into a `statnet` network object! A `statnet` network object is a special kind of list in R. It is formatted in a way that the other `statnet` functions expect. While you could edit it like a normal list, it is highly recommended you use the other `statnet` functions to manipulate this object to make sure you don't break any of the data expectations.
+We are going to turn the attributes file and edgelist into a `statnet` network object. A network object is a special kind of list in R. It is formatted in a way that the other `statnet` functions expect. While you could edit it like a normal list, it is highly recommended you use the other `statnet` functions to manipulate this object to make sure you don't break any of the data expectations.
 
 We'll use the `network` function to create our network object. Before we create it, we will sort our attributes file alphabetically. This is super important, as the network object will automatically sort things itself. **If we do not sort our attributes dataframe to match, all of our measure later will be misaligned!**
 
@@ -246,6 +211,7 @@ We'll use the `network` function to create our network object. Before we create 
 toy_attributes = toy_attributes[order(toy_attributes$id), ]
 
 # make network!
+# we will cover the `directed = FALSE` argument soon.
 toy_network = network(toy_edgelist, directed = FALSE)
 ```
 
@@ -265,7 +231,8 @@ summary(toy_network)
 Then we'll add the node attributes to the network object. If you run `summary` again you should see the values from our `toy_attributes` has been added.
 
 ```{r}
-# add each attribute to network
+# add each attribute to network.
+
 # do this by looking at every column, then adding it to the network
 for(col_name in colnames(toy_attributes)) {
     toy_network = set.vertex.attribute(x = toy_network, attrname = col_name, value=toy_attributes[,col_name])
@@ -291,13 +258,15 @@ toy_attributes$title = toy_attributes$id
 visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
 ```
 
+Nice.
+
 ## Limitations of Network Data
 
 Before we move on we should take a moment to talk about some the the caveats when suing network data. Network analysis is very vulnerable to missing data. A simple way to understand why is to make a small adjustment to our network.
 
 I've highlighted one node in green. This node is structurally vital to the network we see now.
 
-```{r net_data_vulnerability}
+```{r net_data_vulnerability, echo=FALSE}
 # make hidden betweenness scale
 .vul_bet = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE, cmode = "undirected")
 
@@ -318,7 +287,7 @@ visNetwork(nodes = .vul_att, edges = .vul_edge) %>% visInteraction(zoomView = FA
 
 If we remove this node, the network changes in a major way! Imagine these nodes are people, and that missing node is the *one* person you forget to survey, or was sick the day data was collected. This could massively change the outcome of your analyses. There is some advanced research going on to detect and replace missing data like this if you have enough context, but it is not something to rely on.
 
-```{r net_data_vulnerability_missing}
+```{r net_data_vulnerability_missing, echo=FALSE}
 # plot
 visNetwork(nodes = .vul_att[.vul_att$color != "green",], edges = .vul_edge) %>% visInteraction(zoomView = FALSE)
 ```
@@ -339,7 +308,7 @@ Both edgelist and adjacency matrix datasets are inherently directed. For edgelis
 
 A directed network tracks which node is the source and which node is the receiver for an edge. Take for example the *follow* mechanic on Twitter. User A can follow User B, creating a directed edge from A to B, but B does not have to follow A in return. This can be useful when trying to understand the flows of resources that are finite such as money or goods.
 
-```{r Directionality, echo=FALSE}
+```{r Directionality}
 # visNetwork uses a column called "arrows" to show directionality in its plots.
 # For our edgelist, we'll just say every row is "to" for now
 toy_edgelist$arrows = "to"
@@ -350,10 +319,11 @@ visNetwork(toy_attributes, toy_edgelist, main = "Directed") %>% visInteraction(z
 
 An un-directed network treats all ties as mutual, such that A and B are both involved equally in a tie. An example is the *friend* mechanic on Facebook. Once a friendship is established, both users are considered equal in the tie. This can be helpful when you do not have information on what node initiates a tie, or when events happen equally to a group of nodes, such as all nodes being connected through co-membership in a group.
 
-```{r echo=FALSE}
+```{r}
 # lets drop the arrow column for now since our network is un-directed.
 toy_edgelist = toy_edgelist[,c("from", "to")]
 
+# plot
 visNetwork(toy_attributes, toy_edgelist, main = "Un-directed") %>% visInteraction(zoomView = FALSE)
 ```
 
@@ -418,7 +388,7 @@ Degree is a raw count of the number of edges a node has, this makes the interpre
 
 Let's scale the node sizes of our toy network based on their total degree numbers. We'll get degree counts for each of our nodes using the `degree()` function. We can save that into our dataframe and network for use later. For now I am naming columns to work specifically with `visNetwork`, we'll make a proper dataframe for analyses later using data we saved in the network object. In our visualization, you can click on any node to highlight only the edges connected to that node.
 
-```{r echo=FALSE}
+```{r}
 # find the degree of each node and save in the network
 # we will use the special `%v%` operator when assigning values to a network. `%v%` works like `$` for dataframes, allowing you to ask for specific values in the network
 # in this case `%v%` stands for vertex, and you can use `%e%` if you want to work with edges.
