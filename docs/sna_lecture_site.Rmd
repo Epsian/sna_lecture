@@ -185,7 +185,7 @@ Each network also typically has an attributes table, which looks just like typic
 # load in data
 toy_attributes = read.csv("./data/toy_attributes.csv", header = TRUE, stringsAsFactors = FALSE)
 
-# show to of attributes table
+# show top of attributes table
 kable(head(toy_attributes, n = 10))
 ```
 
@@ -375,8 +375,6 @@ Node level measures are numeric representations of a node's position and importa
 * Geodesic distance
 * Betweenness centrality
 * Eigenvector centrality
-* k-core
-* 
 
 Most node level measures are only helpful within the context of the network they were generated for. This is because the measures are created in part using network level measures like density. This means it is alright to compare one node to another within the same network, but toy should node compare the node level measures between networks.
 
@@ -507,37 +505,25 @@ toy_attributes$color[which(toy_network%v%"evc" == min(toy_network%v%"evc"))] = "
 visNetwork(toy_attributes, toy_edgelist, main = "Eigenvector Centrality Example") %>% visInteraction(zoomView = FALSE)
 ```
 
-## K-Core
-
-**K-Core** help find highly connected segments in a network. These clusters are a rudimentary measure of community in a network, though much more nuanced tools exist. Nodes are part of a k-core if all others in the group are connected with *k* other nodes. So for example a group would be a 3-core if every node was connected to at least 3 other nodes in a cluster.
-
-```{r}
-# compute kcore and save to "kcore"
-toy_network%v%"kcore" = kcores(toy_network, mode = "graph")
-
-# change labels to kcore
-toy_attributes$label = toy_network%v%"kcore"
-
-# reset all nodes to grey
-toy_attributes$color = c("grey")
-
-# plot node colors according to kcore
-toy_attributes$color = colors(distinct = TRUE)[toy_network%v%"kcore" + 50]
-
-# plot
-visNetwork(toy_attributes, toy_edgelist, main = "K-core Example") %>% visInteraction(zoomView = FALSE)
-```
-
 # Network Tools
 
-There are several ways to interact with network data in R. Thus far we have been using a combination of `statnet` for analysis and `visNetwork` for visualization. Next we'll dig deeper into these tools and explore other options.
+There are several ways to interact with network data in R. Thus far we have been using a combination of `statnet` for analysis and `visNetwork` for visualization. Here we'll gloss over some other tools and what they are used for. Rather than a comprehensive tutorial, this section is just meant to introduce you to what tools are out there so you can investigate them further if you have a need fro them.
 
-## statnet
+## Network Models
 
-`statnet` is one of the two largest network packages in R. 
+### statnet
 
+`statnet` is one of the two largest network packages in R. It allows you to create network objects and generate the network measures we've been looking at this far. `statnet`'s claim to fame however is it's ability to run network simulations, called *exponential random graph models (ERGMs)*. These models allow you to keep some aspect of a network constant and generate random networks that fit your specifications. This can help you highlight one structural aspect of a network and prove that, all else being random, it is important. To learn more about ERGMs, see [@robinsIntroductionExponentialRandom2007; @robinsRecentDevelopmentsExponential2007]
 
+### igraph
 
+`igraph` is the other big network package in R. 
+
+## Network Visualization
+
+### visNetwork
+
+`visNetwork` can make some nice interactive network visualizations with relatively simple code. This is great for learning and for exploring networks interactively. However, it does have significant downsides. For one, you have to keep separate dataframes for your edges and attributes as it cannon run directly on network objects. Most importantly it cannot produce static network images! You will most likely need more static plots than interactive ones. If you can only dig deeply into one tool, this one may not be the best to specialize in.
 
 ------------------------------------------------------------------------
 
