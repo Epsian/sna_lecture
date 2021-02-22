@@ -5,3 +5,7 @@
 
 *.pdf
 *.html
+*.psd
+
+*/*_cache/*
+*/*_files/*
