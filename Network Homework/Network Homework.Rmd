@@ -58,7 +58,13 @@ toy_network = network(toy_edgelist, directed = FALSE)
 
 ## Introduction
 
-This is the interactive homework assignment for the UC Davis DataLab IST8X network lecture. 
+This is the interactive homework assignment for the UC Davis DataLab IST8X network lecture. It will present questions for you to answer along with spaces to save your responses. Make sure you hit submit or save for all questions!
+
+You can re-try any problem in this assignment, or you can clear the assignment by clicking "Start Over" on the right.
+
+When you are done, look in your working directory for `YOUR_NAME_network_homework.answers`. This is what you will upload to Canvas. Please replace "YOUR_NAME" with your name. If you need help finding your working directory, run `getwd()` in the console.
+
+Here is the first example of a question. Please enter your name here and hit "Submit Answer". Once you are done, hit "Next Topic" to advance to the next page.
 
 ```{r student_name_b}
 question("What is your name?",
@@ -70,6 +76,8 @@ question("What is your name?",
 ```
 
 ## What is Network Analysis
+
+This section will go over some network concepts and vocabulary. Be sure to hit the "Continue" button after you finish each section of questions!
 
 ### What is a Network
 
@@ -160,13 +168,36 @@ question_text("\nWhat is the density of this network?",
 
 
 
-```{r text_area}
+
+
+## Node Level Questions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r template_text_area}
 textAreaInput("answer_text", "Why do you think?")
 actionButton("save_button", label = "Save")
 verbatimTextOutput("saved")
 ```
 
-```{r text_back, context="server"}
+```{r template_text_back, context="server"}
 saved_text = eventReactive(input$save_button, {
   cat(input$answer_text, file = .answers_log, append = TRUE)
   paste0("Saved Answer: ", input$answer_text)
@@ -177,5 +208,14 @@ output$saved = renderText({saved_text()})
 
 
 
-## Node Level Questions
+
+
+
+
+
+
+
+
+
+
 
