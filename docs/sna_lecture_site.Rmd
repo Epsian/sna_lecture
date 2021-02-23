@@ -50,7 +50,7 @@ This reader will introduce the theoretical and logistical underpinnings of netwo
 
 ## While you wait
 
--   Make sure you have installed all the packages you will need: `install.packages(c("statnet", "visNetwork"))`
+-   Make sure you have installed all the packages you will need: `install.packages(c("statnet", "visNetwork", "learnr"))`
 -   *DOWNLOAD DATA*
 -   Play around with the [Oracle of Bacon](https://oracleofbacon.org/)
 
@@ -102,7 +102,7 @@ visNetwork(nodes, edges, width = "100%") %>%
   visLayout(randomSeed = 2)
 ```
 
-Rather than looking only at attributes of specific data points, we are looking at the connections between data. In network analysis, data points are called *nodes* or *vertices*, and the connections between them are called *edges* or *ties*. Vertices can be anything---people, places, word, concepts---they are usually mapped into rows in a data frame. Edges contain any information on how these things connect or are related to each other. These components create a *network* or *graph*, defined as "finite set or sets of actors and the relation or relations defined on them" [@wassermanSocialNetworkAnalysis1994].
+Rather than looking only at attributes of specific data points, we are looking at the connections between data. In network analysis, data points are called *nodes* or *vertices*, and the connections between them are called *edges* or *ties*. Vertices can be anything---people, places, words, concepts---they are usually mapped into rows in a data frame. Edges contain any information on how these things connect or are related to each other. These components create a *network* or *graph*, defined as "finite set or sets of actors and the relation or relations defined on them" [@wassermanSocialNetworkAnalysis1994].
 
 ## Networks in research - Social Sciences
 
