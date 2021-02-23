@@ -1,0 +1,181 @@
+---
+title: "IST8X Lecture 15 - Network Homework"
+output:
+  learnr::tutorial:
+    progressive: true
+    id: "network_homework"
+    version: 0.1
+    allow_skip: false
+runtime: shiny_prerendered
+description: "Homework for the UC Davis DataLab IST8X course"
+---
+
+```{r setup, include=FALSE}
+# packages
+library(learnr)
+library(statnet)
+library(visNetwork)
+
+# options
+knitr::opts_chunk$set(echo = FALSE)
+
+# load in data
+toy_attributes = read.csv("./data/toy_attributes.csv", header = TRUE, stringsAsFactors = FALSE)
+toy_edgelist = read.csv("./data/toy_edgelist.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# answers log location
+.answers_log = "./YOUR_NAME_network_homework.answers"
+
+# recorder function
+my_recorder = function(tutorial_id, tutorial_version, user_id, event, data) {
+  
+  # write to log if answer
+  if(!is.null(data$question)){
+    
+    # print metadata if student name
+    if(data$question == "What is your name?"){
+      cat("---------------------------------------------------------------\n",
+          "Student Name: ", data$answer, "\n",
+          "Time Started: ", as.character(Sys.time()), "\n",
+          "System: ", Sys.info()["sysname"], "\n",
+          "---------------------------------------------------------------\n",
+          file = .answers_log, append = TRUE)
+    } else {
+      cat("\n", data$question, "\n", "Answer: ", data$answer, "\n", "Correct? ", data$correct, "\n", file = .answers_log, append = TRUE)
+    }
+  }
+}
+
+options(tutorial.event_recorder = my_recorder)
+
+# network create
+## sort your attributes frame alphabetically. Super important!
+toy_attributes = toy_attributes[order(toy_attributes$id), ]
+
+## make network!
+toy_network = network(toy_edgelist, directed = FALSE)
+```
+
+## Introduction
+
+This is the interactive homework assignment for the UC Davis DataLab IST8X network lecture. 
+
+```{r student_name_b}
+question("What is your name?",
+         answer(text = "", correct = TRUE),
+         type = "learnr_text",
+         #placeholder = "John Smith",
+         incorrect = "Recorded (Ignore the red)!", allow_retry = TRUE, try_again_button = "Re-enter Name",
+         options = list(placeholder = "John Smith"))
+```
+
+## What is Network Analysis
+
+### What is a Network
+
+```{r what_is_net}
+question("\nWhich of the following are networks? (Select all theat apply)",
+  answer("The power grid", correct = TRUE),
+  answer("The internet", correct = TRUE),
+  answer("The brain", correct = TRUE),
+  answer("Roads", correct = TRUE),
+  random_answer_order = TRUE)
+```
+
+### Vocabulary
+
+```{r node}
+question("\nWhat is one term used to describe an entity in a network?",
+  answer("Node", correct = TRUE),
+  answer("Person", message = "While this works for networks looking at humans, many networks do not!"),
+  answer("Point"),
+  answer("Apex"),
+  random_answer_order = TRUE)
+```
+
+```{r edge}
+question("\nWhat is one term used to describe a connection between two entities in a network?",
+  answer("Edge", correct = TRUE),
+  answer("Link"),
+  answer("String"),
+  answer("Signal"),
+  random_answer_order = TRUE)
+```
+
+### Network Data
+
+For the following, indicate whether the claims are TRUE or FALSE.
+
+```{r net_data}
+question("\nAn edgelist details what nodes in your network are connected.",
+  answer("TRUE", correct = TRUE),
+  answer("FALSE"),
+  random_answer_order = TRUE)
+```
+
+```{r att_list}
+question("\nAn attributes table describes the edges between nodes (weights, frequency, etc.).",
+  answer("TRUE", message = "The attributes table describes the *nodes* not the edges. Edge information is stored in the edgelist or adjacency matrix."),
+  answer("FALSE", correct = TRUE),
+  random_answer_order = TRUE)
+```
+
+## Graph Level Questions
+
+We will now review some graph level properties. All of the questions in this section apply to the network below.
+
+```{r}
+# add pop-up tooltips with names
+# visNetwork uses the "title" column to create pop-up boxes
+toy_attributes$title = toy_attributes$id
+
+# plot!
+visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
+```
+
+```{r node_count}
+question_text("\nHow many nodes are in this network?",
+              answer(text = as.character(length(toy_network%v%"vertex.names")), correct = TRUE),
+              try_again = TRUE)
+```
+
+```{r directed}
+question("\nIs this network directed or un-directed?",
+              answer("Un-Directed", correct = TRUE),
+              answer("Directed"),
+              random_answer_order = TRUE)
+```
+
+```{r density_code, exercise=TRUE}
+# replace the X with the proper function to find the density of the network
+X(toy_network)
+```
+
+```{r density}
+question_text("\nWhat is the density of this network?",
+              answer(text = as.character(round(gden(toy_network), digits = 3)), correct = TRUE),
+              try_again = TRUE,
+              placeholder = "Include 3 decimal places (e.g. 0.000)")
+```
+
+
+
+```{r text_area}
+textAreaInput("answer_text", "Why do you think?")
+actionButton("save_button", label = "Save")
+verbatimTextOutput("saved")
+```
+
+```{r text_back, context="server"}
+saved_text = eventReactive(input$save_button, {
+  cat(input$answer_text, file = .answers_log, append = TRUE)
+  paste0("Saved Answer: ", input$answer_text)
+  })
+
+output$saved = renderText({saved_text()})
+```
+
+
+
+## Node Level Questions
+
