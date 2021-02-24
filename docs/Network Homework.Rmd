@@ -34,7 +34,7 @@ my_recorder = function(tutorial_id, tutorial_version, user_id, event, data) {
     
     # print metadata if student name
     if(data$question == "What is your name?"){
-      cat("---------------------------------------------------------------\n",
+      cat("\n---------------------------------------------------------------\n",
           "Student Name: ", data$answer, "\n",
           "Time Started: ", as.character(Sys.time()), "\n",
           "System: ", Sys.info()["sysname"], "\n",
@@ -77,7 +77,60 @@ question("What is your name?",
 
 ## Problem Set 1 - Bird's Eye View
 
-These problems will all relate to a network as a whole. One of the main draws of network analysis is its ability to get a "bird's eye view" of a system that normally we only see a small part of. Take the network below as an example. If you were a node in this network, you would only ever know the nodes directly connected to you.
+These problems will all relate to a network as a whole. One of the main draws of network analysis is its ability to get a "bird's eye view" of a system that normally we as individuals only see a small part of. 
+
+```{r}
+# add pop-up tooltips with names
+# visNetwork uses the "title" column to create pop-up boxes
+toy_attributes$title = toy_attributes$id
+
+# plot!
+visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
+```
+
+Using the network above, please answer the following questions.
+
+```{r directed}
+question("\nQ1. Is this network directed or un-directed?",
+              answer("Un-Directed", correct = TRUE),
+              answer("Directed"),
+              random_answer_order = TRUE)
+```
+
+```{r density_code, exercise=TRUE}
+# replace the X with the proper function to find the density of the network
+X(toy_network)
+```
+
+```{r density}
+question_text("\nQ2. What is the density of this network?",
+              answer(text = as.character(round(gden(toy_network), digits = 3)), correct = TRUE),
+              try_again = TRUE,
+              placeholder = "Include 3 decimal places (e.g. 0.000)")
+```
+
+
+```{r net_text}
+textAreaInput("net_text", "Q3. Why do you think?")
+actionButton("save_button_net_text", label = "Save")
+verbatimTextOutput("net_text_saved")
+```
+
+```{r net_text_back, context="server"}
+net_text_saved_text = eventReactive(input$save_button_net_text, {
+  cat("\nQ3. Why do you think?\n", input$net_text, file = .answers_log, append = TRUE)
+  paste0("Saved Answer: ", input$net_text)
+  })
+
+output$net_text_saved = renderText({net_text_saved_text()})
+```
+
+## Problem Set 2 - Individual Measures
+
+
+
+
+## Problem Set 3 - Interpretation
 
 
 
@@ -168,43 +221,7 @@ question("\nAn attributes table describes the edges between nodes (weights, freq
   random_answer_order = TRUE)
 ```
 
-## Graph Level Questions
 
-We will now review some graph level properties. All of the questions in this section apply to the network below.
-
-```{r}
-# add pop-up tooltips with names
-# visNetwork uses the "title" column to create pop-up boxes
-toy_attributes$title = toy_attributes$id
-
-# plot!
-visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
-```
-
-```{r node_count}
-question_text("\nHow many nodes are in this network?",
-              answer(text = as.character(length(toy_network%v%"vertex.names")), correct = TRUE),
-              try_again = TRUE)
-```
-
-```{r directed}
-question("\nIs this network directed or un-directed?",
-              answer("Un-Directed", correct = TRUE),
-              answer("Directed"),
-              random_answer_order = TRUE)
-```
-
-```{r density_code, exercise=TRUE}
-# replace the X with the proper function to find the density of the network
-X(toy_network)
-```
-
-```{r density}
-question_text("\nWhat is the density of this network?",
-              answer(text = as.character(round(gden(toy_network), digits = 3)), correct = TRUE),
-              try_again = TRUE,
-              placeholder = "Include 3 decimal places (e.g. 0.000)")
-```
 
 
 
