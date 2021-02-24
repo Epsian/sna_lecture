@@ -66,7 +66,7 @@ When you are done, look in your working directory for `YOUR_NAME_network_homewor
 
 Here is the first example of a question. Please enter your name here and hit "Submit Answer". Once you are done, hit "Next Topic" to advance to the next page.
 
-```{r student_name_b}
+```{r student_name}
 question("What is your name?",
          answer(text = "", correct = TRUE),
          type = "learnr_text",
@@ -74,6 +74,46 @@ question("What is your name?",
          incorrect = "Recorded (Ignore the red)!", allow_retry = TRUE, try_again_button = "Re-enter Name",
          options = list(placeholder = "John Smith"))
 ```
+
+## Problem Set 1 - Bird's Eye View
+
+These problems will all relate to a network as a whole. One of the main draws of network analysis is its ability to get a "bird's eye view" of a system that normally we only see a small part of. Take the network below as an example. If you were a node in this network, you would only ever know the nodes directly connected to you.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## What is Network Analysis
 

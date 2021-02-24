@@ -1,0 +1,350 @@
+---
+title: "Social Network Analysis Workshop"
+author: "Jared Joseph"
+date: "August 31, 2017"
+output: 
+  html_document:
+    code_folding: hide
+    df_print: paged
+runtime: shiny
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if(!require(statnet)){
+    install.packages("statnet")
+    library(statnet)
+}
+par.d = par()
+```
+
+
+# What Can You Expect from this Workshop?
+
+This workshop is intended to give an introduction to Social Network Analysis (SNA) in R, using the Statnet package. We will cover the core concepts in SNA, when you might consider using it, what data kind of data is required, and how to go about exploring your own data. We will start with concepts and theory, and end with actual coding, though code snips are available throughout, and annotations explaining what the code does. *igraph* is another popular network package in R, and while we won't cover it here, the network principles are transferable.
+
+The workshop assumes you have a working knowledge of R.
+
+# What is Social Network Analysis (SNA)?
+
+SNA is a method to look at relational data, meaning that rather than looking only at attributes of specific data points, we are looking at the connections between data. IN SNA, data points are called **nodes**, and the connections between them are called **edges**. These components create a **network**, defined by [Wasserman & Faust (1994)](http://www.cambridge.org/us/academic/subjects/sociology/sociology-general-interest/social-network-analysis-methods-and-applications?format=PB) as "finite set or sets of actors and the relation or relations defined on them."
+```{r First Network}
+set.seed(10) # Setting the random seed will control how networks are gnerated, included here to try and make uniform across participant's computers
+e.m = rgraph(2, mode="graph", tprob = .4) # 'rgraph' creates a random matrix using parameters supplied, which can be interpreted as a network (xplained more in the data section)
+e.n = network(e.m, matrix.type = "adjacency", directed = FALSE) # The 'network' command turns data into a network object, which is required for later analyses
+plot(e.n, label = "Node", edge.label = "edge", vertex.cex = 3)
+```
+
+By looking at these connections in aggregate, we can generate a network that represents the structure of those connections. By taking an outside perspective, we may be able to see patterns of resource flow, centralization of power, or other structural patterns that may not be apparent from the perspective of an individual point in the network.
+
+## Examples
+### Social Sciences
+As far back as 1932, networks have been of interest in the social sciences. Jacob Moreno is credited with one of the first network based studies, focusing on runaway school children, and how their associations could predict running more than any attributes of the individual children. Since then, networks have been used in the social sciences to study community cohesion, gender attitudes in the family, and crime.
+
+Borgatti, S. P., Mehra, A., Brass, D. J., & Labianca, G. (2009). Network Analysis in the Social Sciences. Science, 323(5916), 892.
+
+### Neuroscience
+The brain is often conceptualized as a network of neurons, which inspired the neural network family of machine learning algorithms. SNA is sometimes used to make path models of the brain, charting how different brain regions interact.
+
+### Chemestry
+Network models are sometimes used as analogs for atoms and molecules, with different types of edges representing different bonds. 
+
+### The Internet
+The internet is based on a network structure of sites and hyperlinks, making SNA useful for visualization and understanding the influence of certain sites. One network measure, "PageRank" was developed by Google to measure the relative importance of certain webpages, and optimize their search engine.
+
+### Infastructure
+SNA is often used to look at infrastructure such as the electrical grid, with power stations as nodes and power lines as edges. Using some network measures, it is possible to see which stations are overburdened with relaying power, and which ones act as bottlenecks. You can also see which ones would cut power to the most people if they were to fail.
+
+### Security
+Closely tied to the above example is the use of SNA in security. The US Government uses SNA like methods to map criminal and terrorist organizations, and uses tools like 'Keyplayer' to identify the most vital individuals in a network, and which individuals whose removal will most damage the network.
+
+See [Network Science by Albert-László Barabási](http://barabasi.com/networksciencebook) for elaborations on these examples and more.
+
+## Social Capital
+In sociology, SNA is used under the assumption that there are resources in a network that can be shared. This is not always money capital (though it can be), but can also include other resources such as referrals, equipment, skill sharing, or information. Individuals usually compose the nodes, and edges are the relationships between these people. This is the context I will be using to discuss SNA, though the examples above show many other ways to utilize the same technology. It is important to remember though that relations themselves are only descriptive. If SNA is going to make a claim in regards to a network of people, then the social capital you are trying to follow must be well defined.
+
+## Graph Level Properties
+Social networks can be either **directed** or **undirected**. A directed network tracks what node is sending something to another node, while undirected networks consider all edges to be mutual. Which one you may find useful largely depends on what you are interested in, and the data you are using. Consider connections on Facebook as mutual, as all friends are mutual, meanwhile on Twitter, users follow one another, but that connection does not have to be mutual. This is represented visually using arrows.
+```{r Directionality}
+set.seed(31)
+e.m = rgraph(10, mode="digraph", tprob = .17)
+e.d = network(e.m, matrix.type = "adjacency", directed = TRUE)
+e.u = network(e.m, matrix.type = "adjacency", directed = FALSE)
+
+par(mfrow=c(1,2))
+plot(e.d, main = "Directed", arrowhead.cex = 3, vertex.cex = 3)
+plot(e.u, main = "Undirected", vertex.cex = 3)
+```
+
+**Density** is a measure of how many edges exist in a network out of the total possible edge count, using $\frac{Actual Edges}{Possible Edges}$. Networks that are more densely connected are considered to be more cohesive, and robust, in that the removal of any specific edge will not have a great effect of the network as a whole. It also means that, given the nodes being individuals, each node will have a more direct route to resources that may be present in the network, as they know more individuals who may have the resource they are looking for, or will have a greater chance of knowing someone else who does.
+```{r Density}
+set.seed(10)
+de.h = network(rgraph(10, mode="digraph", tprob = .7), matrix.type = "adjacency", directed = FALSE)
+de.l = network(rgraph(10, mode="digraph", tprob = .1), matrix.type = "adjacency", directed = FALSE)
+
+par(mfrow=c(1,2))
+plot(de.h, main = "High Density", vertex.cex = 3)
+plot(de.l, main = "Low Density", vertex.cex = 3)
+```
+
+**Centralization** measures give a sense of the shape of the network, namely how other measures are distributed in a network. Consider the three networks below. The first "Star" network would be considered highly centralized, as one node connects all the others. It would receive a degree centralization score of 1, as 100% of the ties are connected with one node. The loop network would have a score of 0, as every node is equally connected to each other.
+```{r Centralization}
+# Networks created manually, to assure the propper shape
+ce.star = matrix(data = c(0,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0), nrow = 6, ncol = 6)
+ce.star = network(ce.star, matrix.type = "adjacency", directed = FALSE)
+
+ce.line = matrix(data = c(0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0), nrow = 6, ncol = 6)
+ce.line = network(ce.line, matrix.type = "adjacency", directed = FALSE)
+
+ce.circle = matrix(data = c(0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0), nrow = 6, ncol = 6)
+ce.circle = network(ce.circle, matrix.type = "adjacency", directed = FALSE)
+
+par(mfrow=c(1,3))
+plot(ce.star, main = "Star", vertex.cex = 3)
+plot(ce.line, main = "Line", vertex.cex = 3)
+plot(ce.circle, main = "Circle", vertex.cex = 3)
+```
+
+## Node Level Properties
+**Degree** measures are counts of how many edges are connected to a node. You can count incoming, outgoing, or total (Freeman) degree counts. This gives a very rough measure of how popular or central a node is in the network. 
+
+**Geodesic Distance** is defined as "the length of the shortest path via the edges or binary connections between nodes." [(Kadushin 2012)](https://global.oup.com/academic/product/understanding-social-networks-9780195379471?q=Understanding%20Social%20Networks&lang=en&cc=us) Nodes that have a shorter average geodesic distance have greater access to the resources in a network, because any resources that exist would be more readily available.  
+```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
+data(florentine)
+gd = geodist(flomarriage)$gdist # geodist() calculates the geodesic distance for all nodes in the network, to every other node. This number is the shortest 'path' of ties from one node to another.
+colnames(gd) = flomarriage%v%"vertex.names"
+row.names(gd) = flomarriage%v%"vertex.names"
+par(par.d)
+plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, arrowhead.cex = 3, vertex.cex = 3)
+knitr::kable(gd)
+```
+
+
+**K-Core** measures the the minimum degree of nodes connected nodes in an area of the network. This results in rudimentary clustering of nodes by the lowest common degree.
+```{r, warning=FALSE}
+par(par.d)
+kc = kcores(flomarriage, mode="graph",diag=FALSE) # kcores() generdates a k-core number for each node in the network, and is best understood though visualization
+plot(flomarriage, main = "K-Cores", vertex.cex = 3, vertex.col = kc+1)
+```
+
+**Centrality** measures how prominent a specific node is in a network. **Betweenness Centrality** measures the extent to which a specific node acts as a **broker**, or a person that bridges a gap between two groups. In the Florentine Marriage network, we can see that the Medici act as brokers between three otherwise disconnected segments in the network, giving them a monopoly on how resources flow between these desperate parts of the network. 
+```{r Brokers}
+b.col = rep("red", times = 16)
+b.col[1] = "blue"
+b.col[c(10, 14)] = "yellow"
+b.col[9] = "purple"
+b.col[12] = "black"
+plot(flomarriage, main = "Florentine Marriage Network", displaylabels = TRUE, label.pos = 0, vertex.col = b.col, arrowhead.cex = 3, vertex.cex = 3)
+```
+
+```{r Betweenness, echo=TRUE}
+bt.o = betweenness(dat = flomarriage, gmode = "graph") #Gets the betweennes centrality measure for each node, with higher values indicating that more connections must flow through this node.
+names(bt.o) = flomarriage%v%"vertex.names"
+bt.o
+```
+
+Another form of centrality is **Eigenvector Centrality**, which is often called a measure of 'popular friends.' Rather than looking at the network position of a node, it looks at the network positions of nodes connected to it. Nodes with a high eigenvector score will be connected to nodes more prominent in the network. A good example case is comparing the Acciaiuoli family, with the Lamberteschi family. Both are only connected with one other family, but one is connected to the Medici.   
+```{r Eigenvector}
+ev = evcent(flomarriage, gmode = "graph") # evcent() get te eigenvector centrality for each node in the network and returns a vector. Higher values means having more 'popular friends' 
+names(ev) = flomarriage%v%"vertex.names"
+ev
+```
+
+## Try it Yourself!
+Here is an interactive network graph. Try adjusting the parameters to see how it affects the network!
+```{r Interactive Plot}
+require(shiny)
+wellPanel(
+numericInput("Nodes", "How many nodes?", 10),
+sliderInput("TieProb", "Tie Probability?", min = 0, max = 1, .5),
+checkboxInput("Dir.check", "Directed?")
+)
+
+renderPlot({
+  plot(network(rgraph(input$Nodes, mode = "digraph", tprob = input$TieProb), matrix.type = "adjacency", directed = input$Dir.check), arrowhead.cex = 3, vertex.cex = 3)
+})
+```
+
+# SNA Data
+Data for SNA is relational data; if you have a list of Xs interacting with Ys, you have network data. However, there are two main ways to represent that data for use in SNA using R.
+
+**Adjacency Matrix**  
+An **adjacency matrix** is a matrix with each node in your network represented as a row and column. If two nodes are connected, a one is put into the matrix where they intersect, if they do not, the value is zero. The sender nodes are the rows, and the receiver nodes are the columns. It is possible to weight connections (i.e. have a 2 or 3 represent multiple connections, but it is not well supported).
+
+```{r}
+am = as.sociomatrix(e.d)
+colnames(am) = letters[1:length(colnames(am))]
+row.names(am) = letters[1:length(row.names(am))]
+knitr::kable(am)
+```
+
+**Edgelist**  
+An **edgelist** is a long matrix with two columns containing the unique names for your nodes. The first column is called **ego**, which contains who is sending the connection in a directed network. The second column is called **alter**, or who is receiving the connection. In an undirected network, you only need to include a connection in one direction, and it will always count as mutual. The columns do not need to be named ego and alter, but those are the common terms used in network research. 
+
+```{r}
+el = as.data.frame(as.edgelist(e.d), stringsAsFactors = FALSE)
+key = data.frame(id = 1:10, name = letters[1:10])
+colnames(el) = c("ego", "alter")
+el$ego = key[match(el[["ego"]], key[["id"]]), "name"]
+el$alter = key[match(el[["alter"]], key[["id"]]), "name"]
+knitr::kable(el)
+```
+
+Both of these data sets create the following network. Try comparing the data sets to the plot, looking at directionality specifically.
+```{r}
+# Statnet uses the '%v%' call to indicate node (or vector) attributes, and '%e%' for edge attrivutes, though they are rarely used. These can be though of as synonymous using the '$' operator for getting a column out of a data frame
+e.d%v%"vertex.names" = letters[1:length(e.d%v%"vertex.names")]
+plot(e.d, displaylabels = TRUE, label.pos = 0, arrowhead.cex = 3, vertex.cex = 3)
+```
+
+## Isolates and Largest Components
+Regardless of how your data is formatted, it is likely that not all nodes will be connected to each other. Depending on how the data was collected, you may even have **isolates** in your data, or nodes that have no edges at all; these appear as lone dots in network graphs. There can also be multiple **components** or collection of nodes that are tied to each other. Even though they are not connected, these components are considered to be the same 'network' if they came from the same data.
+
+Many of the analyses discussed above cannot be run on a network with multiple components. For example, if we tried to get the geodesic distances of the nodes in this network, it would return only NAs, as some nodes cannot reach other nodes in the network, so their distance is unobtainable. The quickest way to deal with this situation is to reduce the network to only the largest component. In most networks, this will remove only a small amount of data, but it could be the case that you have a network that is split more evenly; always look at your network before making such decisions. 
+
+Presented is a comparison between a total network, and he largest component:
+```{r components}
+set.seed(26)
+com = rgraph(30, mode="graph", tprob = .08)
+com = network(com, directed = FALSE)
+
+capture.output({  #These are just to silence some code output, remove them if you would like!
+lcom = com
+lcom%v%"lc" = component.largest(lcom)
+lcom = delete.vertices(lcom, which(lcom%v%"lc" == FALSE))
+}, file = tempfile())
+
+par(mfrow = c(1,2))
+plot(com, main = "Multiple Components and Isolates", arrowhead.cex = 3, vertex.cex = 3)
+plot(lcom, main = "Largest Component Only", arrowhead.cex = 3, vertex.cex = 3)
+```
+
+# Coding
+Statnet has few special coding conventions. Once your data is in one of the two forms discussed above, the process of creating and working with a network follows R conventions. Here we will walk through creating and inspecting a network.
+
+## Network Basics
+
+**Creating a Network**  
+Once your data is in one of the forms discussed above, you can turn it into a network object by using the 'network()' function.  
+*Network Object* = network(x = *Your Data*, directed = *TRUE/FALSE*, matrix.type = *Edgelist or Adjacency Matrix*)  
+```{r Create, echo=TRUE}
+cn.data.a = rgraph(10, mode="digraph", tprob = .5) # Random network to stand in for your data
+cn.a = network(x = cn.data.a, directed = FALSE, matrix.type = "adjacency")
+cn.data.e = rgraph(10, mode="digraph", tprob = .5, return.as.edgelist = TRUE)
+cn.e = network(x = cn.data.e, directed = FALSE, matrix.type = "edgelist")
+```
+
+**Network Overview**  
+Once transformed into a network object, you can call the object or use the summary() function to learn more about it. This provides node and edge counts, as well as the name of the attributes of your network. If the network were a normal flat data file, nodes would be cases, or rows, and node attributes would be the columns. All networks start with the "vertex.names" attribute. These names will be the same as the names used in the data you used to create the network.  
+```{r Overview}
+summary(cn.e)
+```
+
+**Network Attributes**  
+Network attributes can be accessed using a special statnet operator '%v%'. Edge attributes can likewise be accessed using '%e%' though they aren't as common. For example, looking at the Florentine network, we can get the names of all the nodes using flomarriage%v%"vertex.names" (The quotes are required!), and can assign them numbers using flomarriage%v%"Number" = 1:16.
+```{r Attributes}
+flomarriage%v%"vertex.names"
+flomarriage%v%"Number" = 1:16
+
+fm.n = flomarriage%v%"Number"
+names(fm.n) = flomarriage%v%"vertex.names"
+fm.n
+```
+
+**Ploting**  
+Visualizing networks should be done early, it helps get a sense of the network. The standard R plot() command will S3 into the statnet plot.network(), which has a lot of networks specific options. You can see a number of plotting examples by looking at the code throughout this document.   
+```{r PlotLoc, include=FALSE}
+p.e.c = plot(flomarriage) # Manually saving coordiantes
+```
+```{r PlotExample}
+plot(flomarriage, # Name of your network object
+     label = flomarriage%v%"vertex.names", # Labels to be displayed, defaults to vertex names
+     displaylabels = TRUE, # Should labels be rendered?
+     coord = p.e.c, # Manual coordinates, stored by assigning a plot. Used if you like a specific layout
+     mode = "kamadakawai", # What graphic algorthum, a few option which will really change how your plots look
+     usearrows = FALSE, # Use TRUE for directed networks
+     arrowhead.cex = 3, # Arrow sizes
+     vertex.cex = 3, # Vertex sizes 
+     vertex.col = "red", # Vertex colors, takes a vector for the color of each vertex
+     edge.lwd = 1, # Edge line width
+     edge.col = "black") # Edge colors, takes a vector for the color of each edge
+```
+
+## Network Peoperties
+
+**Degree**  
+Degree counts can be found using degree(), it will return a vector containing total degree count for each node. Be warned it defaults to considering the input network as directed, which will return bad values if the network is actually undirected. The variable to fix this is often called 'gmode', which accepts a string of either "digraph" for a directed network, or "graph" for an undirected network.
+```{r Degree.c}
+fm.d = degree(flomarriage, gmode = "graph")
+names(fm.d) = flomarriage%v%"vertex.names"
+fm.d
+```
+
+**Geodesic Distance**
+Geodesic distance can be found using geodist(), it will return two matrices, count and gdist. Count is the number of paths between two nodes, gdist is the number of edges along the shortest path.
+```{r geodesic.c}
+gd.c = geodist(flomarriage)
+colnames(gd.c$counts) = flomarriage%v%"vertex.names"
+colnames(gd.c$gdist) = flomarriage%v%"vertex.names"
+row.names(gd.c$counts) = flomarriage%v%"vertex.names"
+row.names(gd.c$gdist) = flomarriage%v%"vertex.names"
+knitr::kable(gd.c$count, caption = "Count")
+knitr::kable(gd.c$gdist, caption = "Gdist")
+```
+
+**K-Core**
+K-Core can be found using kcores(), it will return a named vector with the K-Core grouping of each node.
+```{r Kcore.c}
+kc.c = kcores(flomarriage, mode = "graph")
+kc.c
+```
+
+**Betweenness Centrality**
+Betweenness centrality can be found using betweenness(), it will return a vector with the betweenness centrality for each node. 
+```{r Betweenness.c}
+bt.c = betweenness(flomarriage, gmode = "graph")
+names(bt.c) = flomarriage%v%"vertex.names"
+bt.c
+```
+
+**Eigenvector Centrality**
+Eigenvector centrality can be found using evcent(), it will return a vector with the eigenvector centrality for each node.
+```{r eigen.c}
+ev.c = evcent(flomarriage)
+names(ev.c) = flomarriage%v%"vertex.names"
+ev.c
+```
+
+## Storing These Values
+There are two easy ways to store the results of all these values. You can export things into a data frame, or store them in the network object itself as attributes.
+
+**Data Frame**  
+You can export existing network data into a data frame if you are more comfortable with viewing data that way.
+```{r df.c}
+df.c = data.frame(id = 1:16,
+                  vertex.name = flomarriage%v%"vertex.names",
+                  degree = fm.d,
+                  kcore = kc.c,
+                  betweenness = bt.c,
+                  eigenvector = ev.c)
+knitr::kable(df.c) # Generates the table below
+```
+
+
+**Network Attributes**  
+You can also store the results back into the network object.
+```{r na.c}
+flomarriage%v%"degree"= fm.d
+flomarriage%v%"kcore" = kc.c
+flomarriage%v%"betweenness" = bt.c
+flomarriage%v%"eigenvector" = ev.c
+summary(flomarriage)
+```
+
+
+### Bibliography
+
+
+*Special Thanks to Dr. Chris Smith, ... . This presentation was created with the help of [(Kadushin 2012)](https://www.amazon.com/Understanding-Social-Networks-Theories-Concepts/dp/0195379470/ref=pd_bxgy_14_img_3?_encoding=UTF8&psc=1&refRID=9MSKEK7804SY2RS02HQG).*
+
+http://faculty.ucr.edu/~hanneman/nettext/C10_Centrality.html
