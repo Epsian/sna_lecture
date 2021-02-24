@@ -263,6 +263,24 @@ visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoom
 
 Nice.
 
+## Components
+
+Most often when working with networks you want to limit your analysis to one cluster or *component*, typically the largest one in your network. If segments of your network aren't connected, you can't answer many of the relational questions network analysis is good for! Let's limit our network to the largest component:
+
+```{r}
+# find what nodes are part of the largest component
+toy_network%v%"lc" = component.largest(toy_network)
+# delete those nodes that are not
+## in the network
+toy_network = delete.vertices(toy_network, which(toy_network%v%"lc" == FALSE))
+## in our dataframes
+toy_attributes = toy_attributes[toy_attributes$id %in% as.character(toy_network%v%"id"),]
+toy_edgelist = toy_edgelist[which(toy_edgelist$to %in% toy_attributes$id | toy_edgelist$from %in% toy_attributes$id),]
+
+# plot!
+visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoomView = FALSE)
+```
+
 ## Limitations of Network Data
 
 Before we move on we should take a moment to talk about some the the caveats when using network data. While powerful, network analysis is particularly picky when in comes to data requirements. I'll cover the two biggest ones below. You should *always* keep these in mind when using or interpreting network tools.
@@ -417,7 +435,7 @@ Let's scale the node sizes of our toy network based on their total degree number
 # find the degree of each node and save in the network
 # we will use the special `%v%` operator when assigning values to a network. `%v%` works like `$` for dataframes, allowing you to ask for specific values in the network
 # in this case `%v%` stands for vertex, and you can use `%e%` if you want to work with edges.
-# so let's get the degree counts, andassign them to the "degree" variable in our network object
+# so let's get the degree counts, and assign them to the "degree" variable in our network object
 toy_network%v%"degree" = degree(toy_network)
 
 # visNetwork uses the "value" column to determine node size, so let's put it there as well for now.
@@ -546,29 +564,40 @@ toy_attributes = read.csv("./data/toy_attributes.csv", header = TRUE, stringsAsF
 ## sort your attributes frame alphabetically. Super important!
 toy_attributes = toy_attributes[order(toy_attributes$id), ]
 ## make network!
-toy_network = network(toy_edgelist, directed = FALSE)
+toy_network_total = network(toy_edgelist, directed = FALSE)
+
+# largest component
+
+## find what nodes are part of the largest component
+toy_network_total%v%"lc" = component.largest(toy_network_total)
+## delete those nodes that are not
+### in the network
+toy_network = delete.vertices(toy_network_total, which(toy_network_total%v%"lc" == FALSE))
+### in our dataframes
+toy_attributes = toy_attributes[toy_attributes$id %in% as.character(toy_network_total%v%"id"),]
+toy_edgelist = toy_edgelist[which(toy_edgelist$to %in% toy_attributes$id | toy_edgelist$from %in% toy_attributes$id),]
 
 # generate measures
 
 ## degree
-toy_network%v%"degree" = degree(toy_network)
+toy_network_total%v%"degree" = degree(toy_network_total)
 ## mean geodesic
-toy_network%v%"mean_distance" = (colSums(geodist(toy_network)$gdist)) / (nrow(as.sociomatrix(toy_network)) - 1)
+toy_network_total%v%"mean_distance" = (colSums(geodist(toy_network_total)$gdist)) / (nrow(as.sociomatrix(toy_network_total)) - 1)
 ## normalized betweenness
-toy_network%v%"norm_betweenness" = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE, cmode = "undirected")
+toy_network_total%v%"norm_betweenness" = betweenness(dat = toy_network_total, gmode = "graph", rescale = TRUE, cmode = "undirected")
 ## eigenvector
-toy_network%v%"evc" = evcent(toy_network, gmode = "graph", rescale = TRUE)
+toy_network_total%v%"evc" = evcent(toy_network_total, gmode = "graph", rescale = TRUE)
 
 # add back to attributes dataframe
 
 ## degree
-toy_attributes$degree = toy_network%v%"degree"
+toy_attributes$degree = toy_network_total%v%"degree"
 ## mean geodesic
-toy_attributes$mean_distance = toy_network%v%"mean_distance"
+toy_attributes$mean_distance = toy_network_total%v%"mean_distance"
 ## normalized betweenness
-toy_attributes$norm_betweenness = toy_network%v%"norm_betweenness"
+toy_attributes$norm_betweenness = toy_network_total%v%"norm_betweenness"
 ## eigenvector
-toy_attributes$evc = toy_network%v%"evc"
+toy_attributes$evc = toy_network_total%v%"evc"
 ```
 
 Finally, we can then look at the network measures for our nodes. This dataframe can be used for plotting or further analyses.
