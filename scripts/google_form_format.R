@@ -2,7 +2,7 @@
 
 # setup ####
 
-library(statnet)
+library(igraph)
 library(openssl)
 
 # load google form responses
@@ -111,9 +111,24 @@ class_edges = merge(class_edges, alias_key, by.x = "from", by.y = "student")[,2:
 # rename alias column to from
 colnames(class_edges)[colnames(class_edges) == "alias"] = "from"
 
+# make 2mode projection ####
+
+course = unique(class_edges$to)
+student = unique(class_edges$from)
+
+tf.list = data.frame(name=c(course, student), type=c(rep(FALSE, length(course)), rep(TRUE, length(student))), stringsAsFactors=FALSE)
+
+proj_net = graph.data.frame(class_edges, directed = FALSE, vertices = tf.list)
+
+proj_net = bipartite.projection(proj_net)
+
+proj_edgelist = as.data.frame(as_edgelist(proj_net[[2]]), stringsAsFactors = FALSE)
+colnames(proj_edgelist) = c("from", "to")
+
 # save out ####
 
 write.csv(class_att, "./data/toy_attributes.csv", row.names = FALSE)
 write.csv(student_edges, "./data/toy_edgelist.csv", row.names = FALSE)
-write.csv(class_edges, "./data/toy_projected.csv", row.names = FALSE)
+write.csv(class_edges, "./data/toy_bipartide.csv", row.names = FALSE)
+write.csv(proj_edgelist, "./data/toy_projected.csv", row.names = FALSE)
 
