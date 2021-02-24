@@ -125,9 +125,13 @@ proj_net = bipartite.projection(proj_net)
 proj_edgelist = as.data.frame(as_edgelist(proj_net[[2]]), stringsAsFactors = FALSE)
 colnames(proj_edgelist) = c("from", "to")
 
+# add unknown students to attributes file for later plotting ####
+
+class_att_total = rbind(class_att, data.frame("id" = unique(unknown_key$alias), "year" = NA, "color" = NA, "major" = NA))
+
 # save out ####
 
-write.csv(class_att, "./data/toy_attributes.csv", row.names = FALSE)
+write.csv(class_att_total, "./data/toy_attributes.csv", row.names = FALSE)
 write.csv(student_edges, "./data/toy_edgelist.csv", row.names = FALSE)
 write.csv(class_edges, "./data/toy_bipartide.csv", row.names = FALSE)
 write.csv(proj_edgelist, "./data/toy_projected.csv", row.names = FALSE)
