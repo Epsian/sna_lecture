@@ -40,8 +40,9 @@ net_url8 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/
 net_url9 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/infrastructure_net.jpg"
 net_url10 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/terror_net.png"
 
-# 2mode
+# others
 net_url11 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/2mode.png"
+net_url12 = "https://raw.githubusercontent.com/Epsian/sna_lecture/main/resources/2_step.png"
 ```
 
 # Overview
@@ -231,11 +232,10 @@ We can inspect our new network by calling the `summary` function on it. Don't wo
 summary(toy_network)
 ```
 
-Then we'll add the node attributes to the network object. If you run `summary` again you should see the values from our `toy_attributes` has been added.
+Then we'll add the node attributes to the network object. If you run `summary` again you should see the values from our `toy_attributes` have been added.
 
 ```{r}
 # add each attribute to network.
-
 # do this by looking at every column, then adding it to the network
 for(col_name in colnames(toy_attributes)) {
     toy_network = set.vertex.attribute(x = toy_network, attrname = col_name, value=toy_attributes[,col_name])
@@ -265,9 +265,11 @@ Nice.
 
 ## Limitations of Network Data
 
-Before we move on we should take a moment to talk about some the the caveats when suing network data. Network analysis is very vulnerable to missing data. A simple way to understand why is to make a small adjustment to our network.
+Before we move on we should take a moment to talk about some the the caveats when using network data. While powerful, network analysis is particularly picky when in comes to data requirements. I'll cover the two biggest ones below. You should *always* keep these in mind when using or interpreting network tools.
 
-I've highlighted one node in green. This node is structurally vital to the network we see now.
+### Missing Data
+
+Network analysis is very vulnerable to missing data. A simple way to understand why is to make a small adjustment to our network. I've highlighted one node in green. This node is structurally vital to the network; without it, the shape of the network as a whole will change.
 
 ```{r net_data_vulnerability, echo=FALSE}
 # make hidden betweenness scale
@@ -295,9 +297,21 @@ If we remove this node, the network changes in a major way! Imagine these nodes 
 visNetwork(nodes = .vul_att[.vul_att$color != "green",], edges = .vul_edge) %>% visInteraction(zoomView = FALSE)
 ```
 
+### Network Boundaries
+
+Network analysis is all about looking at the relationships between entities. However, following all connections an entity has can quickly spiral out of hand. For example, if you wanted to map your own social network, where would you start? You would include yourself, then your friends and family, but what about after that? Your friends and family have friends and family, as do their friends and family, as do their ... and so on. If you are looking at human networks, *every* human will be included if you look far enough, so how do you decide when to stop?
+
+There is no easy answer. If you are looking at a pre-defined group (e.g. this class), you can set the boundaries to include everyone in this class and the connection between them. However, that doesn't really capture the social networks of people in this class as most people will have friends elsewhere.
+
+Another common method is setting an arbitrary number of "steps" or connections from a target population. If we were interested in a 2-step network from an individual, we would collect all of their relevant connections, and then ask all the people they nominated about their connections. Some sort of justification will be needed as to why you picked the number of steps that you did.
+
+```{r echo=FALSE, out.width= "100%"}
+knitr::include_graphics(net_url12)
+```
+
 ## Projected Networks
 
-Often, you will not have individual level network data, but you will have data on group membership. For example, if you wanted to map the social networks of student, but don't know who they actually hand around with, you may be able to use class rosters to build an approximate network. This is call a *bipartite network*, *two-mode*, or *projected network*. You can see an example below.
+Often, you will not have individual level network data, but you will have data on group membership. For example, if you wanted to map the social networks of student, but don't know who they actually hang around with, you may be able to use class rosters to build an approximate network. This is call a *bipartite network*, *two-mode*, or *projected network*. You can see an example below.
 
 In this figure there are two kinds of nodes, students and classes. You can "collapse" this into a student network by assuming every student connected to a class is connected to each other. The same is true with classes, such that classes are related to each other if a single student is enrolled in both. This assumption may not always be correct, and you need to take care if you are going to make it in your research. If a calss has 300 students, it is most likely not correct to assume every student knows every other student in that class.
 
@@ -416,9 +430,9 @@ visNetwork(toy_attributes, toy_edgelist, main = "Degree Example") %>% visInterac
 
 ## Geodesic Distance
 
-**Geodesic Distance** is "the length of the shortest path via the edges or binary connections between nodes" [@kadushinUnderstandingSocialNetworks2012]. In other words, if we treat the network as a map we can move along, with the nodes being stopping places and the edges being paths, the geodesic is the shortest possible path between two nodes, and that distance is how many edges we have to walk along for that shortest path. 
+**Geodesic Distance** is "the length of the shortest path via the edges or binary connections between nodes" [@kadushinUnderstandingSocialNetworks2012]. In other words, if we treat the network as a map we can move along, with the nodes being stopping places and the edges being paths, the geodesic is the shortest possible path we can use to walk between two nodes. 
 
-Nodes that have a shorter average geodesic distance between all the other nodes in the network are considered to have have greater access to the resources in a network. This is because a node with a low average geodesic distance can theoretically "reach" the other nodes with less effort, because it does not need to travel as far in the network.
+Nodes that on average have a shorter geodesic distance between all the other nodes in the network are considered to have have greater access to the resources in a network. This is because a node with a low average geodesic distance can theoretically "reach" the other nodes with less effort because it does not need to travel as far.
 
 To find the mean geodesic distance for each node in the network we will first need to find the geodesic distance from each node to every other node, then take the mean. Not super difficult, but there isn't a single function to do it for us. First we will use the `geodist()` function to get all the geodesics.
 
@@ -427,7 +441,7 @@ To find the mean geodesic distance for each node in the network we will first ne
 # I use the $gdist so we only get geodesics not counts
 geodist(toy_network)$gdist
 ```
-This output is just like an adjacency matrix, with row and columns being the network node IDs (`net_id` in out attributes dataframe). Next we would want sum all the columns for each row (so adding up all the geodesics for a node), and divide by the total number of nodes it can have an edge with to get the average geodesic distance for that node. This gives us the average geodesic distance for each node!
+This output is just like an adjacency matrix, with row and columns being the network node IDs (`net_id` in our attributes dataframe). Next we would want sum all the columns for each row (so adding up all the geodesics for a node), and divide by the total number of nodes it can have an edge with to get the average geodesic distance for that node. This gives us the average geodesic distance for each node!
 
 ```{r}
 # colsums gives us the sum of all columns for a row
@@ -439,18 +453,18 @@ Lets add thus to our network and plot it. I will also add some color and labels 
 
 ```{r Geodesic, echo=TRUE, message=FALSE, warning=FALSE}
 # add mean geodesic distance to network object
-toy_network%v%"mean.distance" = 
+toy_network%v%"mean_distance" = 
   (colSums(geodist(toy_network)$gdist))/(nrow(as.sociomatrix(toy_network)) - 1)
 
 # set all node colors in visNetwork to grey as default
 toy_attributes$color = c("grey")
 
 # add label as geodesic distance, rounding to 3 digits
-toy_attributes$label = round(toy_network%v%"mean.distance", 3)
+toy_attributes$label = round(toy_network%v%"mean_distance", 3)
 
 # replace min average geodesic with blue, max with red
-toy_attributes$color[which(toy_network%v%"mean.distance" == max(toy_network%v%"mean.distance"))] = "red"
-toy_attributes$color[which(toy_network%v%"mean.distance" == min(toy_network%v%"mean.distance"))] = "blue"
+toy_attributes$color[which(toy_network%v%"mean_distance" == max(toy_network%v%"mean_distance"))] = "red"
+toy_attributes$color[which(toy_network%v%"mean_distance" == min(toy_network%v%"mean_distance"))] = "blue"
 
 # make sure edges are grey too
 toy_edgelist$color = "grey"
@@ -516,6 +530,51 @@ toy_attributes$color[which(toy_network%v%"evc" == min(toy_network%v%"evc"))] = "
 
 # plot
 visNetwork(toy_attributes, toy_edgelist, main = "Eigenvector Centrality Example") %>% visInteraction(zoomView = FALSE)
+```
+
+# Network Workflow
+
+We have been taking our analyses one step at a time and plotting them. This is useful for learning, but slightly annoying in practice. Below I've aggregated how you would actually run analyses in practice so you can refer to it later.
+
+```{r workflow_data, echo=TRUE}
+# data load
+toy_edgelist = read.csv("./data/toy_edgelist.csv", header = TRUE, stringsAsFactors = FALSE)
+toy_attributes = read.csv("./data/toy_attributes.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# make a network
+
+## sort your attributes frame alphabetically. Super important!
+toy_attributes = toy_attributes[order(toy_attributes$id), ]
+## make network!
+toy_network = network(toy_edgelist, directed = FALSE)
+
+# generate measures
+
+## degree
+toy_network%v%"degree" = degree(toy_network)
+## mean geodesic
+toy_network%v%"mean_distance" = (colSums(geodist(toy_network)$gdist)) / (nrow(as.sociomatrix(toy_network)) - 1)
+## normalized betweenness
+toy_network%v%"norm_betweenness" = betweenness(dat = toy_network, gmode = "graph", rescale = TRUE, cmode = "undirected")
+## eigenvector
+toy_network%v%"evc" = evcent(toy_network, gmode = "graph", rescale = TRUE)
+
+# add back to attributes dataframe
+
+## degree
+toy_attributes$degree = toy_network%v%"degree"
+## mean geodesic
+toy_attributes$mean_distance = toy_network%v%"mean_distance"
+## normalized betweenness
+toy_attributes$norm_betweenness = toy_network%v%"norm_betweenness"
+## eigenvector
+toy_attributes$evc = toy_network%v%"evc"
+```
+
+Finally, we can then look at the network measures for our nodes. This dataframe can be used for plotting or further analyses.
+
+```{r}
+kable(head(toy_attributes))
 ```
 
 # Network Tools
