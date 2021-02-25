@@ -2,10 +2,9 @@
 title: "IST8X Lecture 15 - Network Homework"
 output:
   learnr::tutorial:
-    progressive: true
+    progressive: false
     id: "network_homework"
     version: 0.1
-    allow_skip: false
 runtime: shiny_prerendered
 description: "Homework for the UC Davis DataLab IST8X course"
 ---
@@ -54,6 +53,21 @@ toy_attributes = toy_attributes[order(toy_attributes$id), ]
 
 ## make network!
 toy_network = network(toy_edgelist, directed = FALSE)
+
+# find what nodes are part of the largest component
+toy_network%v%"lc" = component.largest(toy_network)
+# delete those nodes that are not
+## in the network
+toy_network = delete.vertices(toy_network, which(toy_network%v%"lc" == FALSE))
+## in our dataframes
+toy_attributes = toy_attributes[toy_attributes$id %in% as.character(toy_network%v%"vertex.names"),]
+toy_edgelist = toy_edgelist[which(toy_edgelist$to %in% toy_attributes$id | toy_edgelist$from %in% toy_attributes$id),]
+
+# read in hw data
+hw_attributes = read.csv("./data/hw_attributes.csv", header = TRUE, stringsAsFactors = FALSE)
+hw_edgelist = read.csv("./data/hw_edgelist.csv", header = TRUE, stringsAsFactors = FALSE)
+
+hw_net = network(hw_edgelist, directed = FALSE)
 ```
 
 ## Introduction
@@ -62,7 +76,7 @@ This is the interactive homework assignment for the UC Davis DataLab IST8X netwo
 
 You can re-try any problem in this assignment, or you can clear the assignment by clicking "Start Over" on the right.
 
-When you are done, look in your working directory for `YOUR_NAME_network_homework.answers`. This is what you will upload to Canvas. Please replace "YOUR_NAME" with your name. If you need help finding your working directory, run `getwd()` in the console.
+When you are done, look in your working directory for `YOUR_NAME_network_homework.answers`. (Your working directory is `r getwd()`). This is what you will upload to Canvas. Please replace "YOUR_NAME" with your name.
 
 Here is the first example of a question. Please enter your name here and hit "Submit Answer". Once you are done, hit "Next Topic" to advance to the next page.
 
@@ -70,14 +84,56 @@ Here is the first example of a question. Please enter your name here and hit "Su
 question("What is your name?",
          answer(text = "", correct = TRUE),
          type = "learnr_text",
-         #placeholder = "John Smith",
          incorrect = "Recorded (Ignore the red)!", allow_retry = TRUE, try_again_button = "Re-enter Name",
          options = list(placeholder = "John Smith"))
 ```
 
-## Problem Set 1 - Bird's Eye View
+## Problem Set 1 - Network Data
 
-These problems will all relate to a network as a whole. One of the main draws of network analysis is its ability to get a "bird's eye view" of a system that normally we as individuals only see a small part of. 
+This section will ask about network data.
+
+For the following two questions, please select if the statement is TRUE or FALSE.
+
+```{r net_data}
+question("\nQ1.1 - An edgelist details what nodes in your network are connected.",
+  answer("TRUE", correct = TRUE),
+  answer("FALSE"),
+  random_answer_order = TRUE, allow_retry = TRUE)
+```
+
+```{r att_list}
+question("\nQ1.2 - An attributes table describes the edges between nodes (weights, frequency, etc.).",
+  answer("TRUE", message = "The attributes table describes the *nodes* not the edges. Edge information is stored in the edgelist or adjacency matrix."),
+  answer("FALSE", correct = TRUE),
+  random_answer_order = TRUE, allow_retry = TRUE)
+```
+
+Use this adjacency matrix to answer the following questions.
+
+```{r}
+knitr::kable(data.frame("A" = c(1,0,1,1), "B" = c(0,1,0,0), "C" = c(1,0,1,0), "D" = c(1,0,0,1), row.names = c("A", "B", "C", "D")))
+```
+
+```{r weighted}
+question("\nQ1.3 - If this adjacency matrix were turned into a network, would there be weighted edges?",
+  answer("No", correct = TRUE),
+  answer("Yes", message = "All the edges in this matrix are equal to 1, meaning they are imply binary yes/no rather than weighted."),
+  random_answer_order = TRUE, allow_retry = TRUE)
+```
+
+```{r edge_guess}
+question("\nQ1.4 - Which of the following edges exist in the network (Select all that apply)?",
+  answer("A-B"),
+  answer("A-C", correct = TRUE),
+  answer("D-A", correct = TRUE),
+  answer("C-B"),
+  answer("B-D"),
+  random_answer_order = TRUE, allow_retry = TRUE)
+```
+
+## Problem Set 2 - Coding and Measures
+
+### Graph Level Properties
 
 ```{r}
 # add pop-up tooltips with names
@@ -91,7 +147,7 @@ visNetwork(nodes = toy_attributes, edges = toy_edgelist) %>% visInteraction(zoom
 Using the network above, please answer the following questions.
 
 ```{r directed}
-question("\nQ1. Is this network directed or un-directed?",
+question("\nQ2.1 - Is this network directed or un-directed?",
               answer("Un-Directed", correct = TRUE),
               answer("Directed"),
               random_answer_order = TRUE)
@@ -103,174 +159,92 @@ X(toy_network)
 ```
 
 ```{r density}
-question_text("\nQ2. What is the density of this network?",
+question_text("\nQ2.2 - What is the density of this network?",
               answer(text = as.character(round(gden(toy_network), digits = 3)), correct = TRUE),
-              try_again = TRUE,
+              allow_retry = TRUE,
               placeholder = "Include 3 decimal places (e.g. 0.000)")
 ```
 
+### Eigenvector Centrality
 
-```{r net_text}
-textAreaInput("net_text", "Q3. Why do you think?")
-actionButton("save_button_net_text", label = "Save")
-verbatimTextOutput("net_text_saved")
+```{r}
+toy_network%v%"evc" = evcent(toy_network, gmode = "graph", rescale = TRUE)
+
+toy_attributes$title = toy_attributes$id
+
+# reset all nodes to grey
+toy_attributes$color = c("grey")
+
+# replace min average geodesic with blue, max with red
+toy_attributes$color[which(toy_network%v%"evc" == max(toy_network%v%"evc"))] = "red"
+toy_attributes$color[which(toy_network%v%"evc" == min(toy_network%v%"evc"))] = "blue"
+
+# plot
+visNetwork(toy_attributes, toy_edgelist) %>% visInteraction(zoomView = FALSE)
 ```
 
-```{r net_text_back, context="server"}
-net_text_saved_text = eventReactive(input$save_button_net_text, {
-  cat("\nQ3. Why do you think?\n", input$net_text, file = .answers_log, append = TRUE)
-  paste0("Saved Answer: ", input$net_text)
+```{r max_betweenness_code, exercise=TRUE}
+# replace X with the proper function to find the eigenvector centrality of nodes in the network.
+# Assign the values to the attributes dataframe.
+toy_attributes$evc = X(toy_network, ...)
+
+# View the dataframe
+toy_attributes
+```
+
+```{r max_betweenness}
+question_text("\nQ2.3 - What is the highest eigenvector centrality in the above network?",
+              answer(text = as.character(round(max(evcent(toy_network, gmode = "graph", rescale = TRUE)), digits = 3)), correct = TRUE),
+              allow_retry = TRUE,
+              placeholder = "Include 3 decimal places (e.g. 0.000)")
+```
+
+<div id="max_betweenness_code-hint">
+**Hint:** You can run code on the dataframe above! Use a function you learned previously on the betweenness column you made to find the maximum.
+</div>
+
+```{r max_betweenness_open}
+textAreaInput("max_betweenness_open_text", "Q2.4 - What is the significance of a high eigenvector centrality score?")
+actionButton("max_betweenness_open_save_button", label = "Save")
+verbatimTextOutput("max_betweenness_open_saved")
+```
+
+```{r max_betweenness_open_back, context="server"}
+max_betweenness_open_saved_text = eventReactive(input$max_betweenness_open_save_button, {
+  cat("\nQ2.4 - What is the significance of a high betweenness centrality score?\n", input$max_betweenness_open_text, file = .answers_log, append = TRUE)
+  paste0("Saved Answer: ", input$max_betweenness_open_text)
   })
 
-output$net_text_saved = renderText({net_text_saved_text()})
+output$max_betweenness_open_saved = renderText({max_betweenness_open_saved_text()})
 ```
-
-## Problem Set 2 - Individual Measures
-
-
-
 
 ## Problem Set 3 - Interpretation
 
+```{r}
+# add pop-up tooltips with names
+# visNetwork uses the "title" column to create pop-up boxes
+hw_attributes$title = hw_attributes$id
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## What is Network Analysis
-
-This section will go over some network concepts and vocabulary. Be sure to hit the "Continue" button after you finish each section of questions!
-
-### What is a Network
-
-```{r what_is_net}
-question("\nWhich of the following are networks? (Select all theat apply)",
-  answer("The power grid", correct = TRUE),
-  answer("The internet", correct = TRUE),
-  answer("The brain", correct = TRUE),
-  answer("Roads", correct = TRUE),
-  random_answer_order = TRUE)
+# plot!
+visNetwork(nodes = hw_attributes, edges = hw_edgelist) %>% visInteraction(zoomView = FALSE)
 ```
 
-### Vocabulary
+Please use the above network to answer the following questions.
 
-```{r node}
-question("\nWhat is one term used to describe an entity in a network?",
-  answer("Node", correct = TRUE),
-  answer("Person", message = "While this works for networks looking at humans, many networks do not!"),
-  answer("Point"),
-  answer("Apex"),
-  random_answer_order = TRUE)
+```{r bet_3}
+textAreaInput("bet_3_text", "Q3.1 - Which node in this network do you think has the highest betweenness centrality score? Why? (Hover over the nodes to see names)")
+actionButton("bet_3_save_button", label = "Save")
+verbatimTextOutput("bet_3_saved")
 ```
 
-```{r edge}
-question("\nWhat is one term used to describe a connection between two entities in a network?",
-  answer("Edge", correct = TRUE),
-  answer("Link"),
-  answer("String"),
-  answer("Signal"),
-  random_answer_order = TRUE)
-```
-
-### Network Data
-
-For the following, indicate whether the claims are TRUE or FALSE.
-
-```{r net_data}
-question("\nAn edgelist details what nodes in your network are connected.",
-  answer("TRUE", correct = TRUE),
-  answer("FALSE"),
-  random_answer_order = TRUE)
-```
-
-```{r att_list}
-question("\nAn attributes table describes the edges between nodes (weights, frequency, etc.).",
-  answer("TRUE", message = "The attributes table describes the *nodes* not the edges. Edge information is stored in the edgelist or adjacency matrix."),
-  answer("FALSE", correct = TRUE),
-  random_answer_order = TRUE)
-```
-
-
-
-
-
-
-
-## Node Level Questions
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r template_text_area}
-textAreaInput("answer_text", "Why do you think?")
-actionButton("save_button", label = "Save")
-verbatimTextOutput("saved")
-```
-
-```{r template_text_back, context="server"}
-saved_text = eventReactive(input$save_button, {
-  cat(input$answer_text, file = .answers_log, append = TRUE)
-  paste0("Saved Answer: ", input$answer_text)
+```{r bet_3_back, context="server"}
+bet_3_saved_text = eventReactive(input$bet_3_save_button, {
+  cat("\nQ2.4 - Which node in this network do you think would have the highest betweenness centrality score? Why?\n", input$bet_3_text, file = .answers_log, append = TRUE)
+  paste0("Saved Answer: ", input$bet_3_text)
   })
 
-output$saved = renderText({saved_text()})
+output$bet_3_saved = renderText({bet_3_saved_text()})
 ```
-
-
-
-
-
-
-
-
-
 
 
 
