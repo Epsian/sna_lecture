@@ -52,7 +52,7 @@ This reader will introduce the theoretical and logistical underpinnings of netwo
 ## While you wait
 
 -   Make sure you have installed all the packages you will need: `install.packages(c("statnet", "visNetwork", "learnr"))`
--   *DOWNLOAD DATA*
+-   Download the data and class code-along from Canvas
 -   Play around with the [Oracle of Bacon](https://oracleofbacon.org/)
 
 ## Learning Objectives
@@ -62,7 +62,6 @@ By the end of this class meeting, students should be able to:
 -   Understand what a network is.
 -   Understand what is and is not relational data.
 -   Understand the shortcomings and limitations of network analysis.
--   Analyze the utility of a dataset for network analysis.
 -   Evaluate a network dataset and interpret the generated metrics.
 
 ## Roadmap
@@ -86,7 +85,7 @@ You are all most likely familiar now with tabular data; rows and columns contain
 | ![](`r net_url3`){width="10%"} | G    | 32  | 4       |
 | ![](`r net_url4`){width="10%"} | Z    | 48  | 8       |
 
-While this is a tidy way to store data, it artificially atomizes or separates many of the things we are interested in as researchers, social or otherwise. Network analysis is a tool to work with *relational* data. This is the information about how individuals are connected with each other. For example, the diagram below shows the same data as the table above, with the added benefit of showing how these individuals are connected to each other. Hover over the people to reveal the data about them.
+While this is a tidy way to store data, it artificially atomizes or separates many of the things we are interested in as researchers, social or otherwise. Network analysis is a tool to work with *relational* data, a.k.a. information about how entities are connected with each other. For example, the diagram below shows the same data as the table above, with the added benefit of showing how these individuals are connected to each other. Hover over the people to reveal the data about them.
 
 ```{r echo=FALSE, out.width='100%'}
 nodes = data.frame(id = 1:4, 
@@ -331,10 +330,25 @@ knitr::include_graphics(net_url12)
 
 Often, you will not have individual level network data, but you will have data on group membership. For example, if you wanted to map the social networks of student, but don't know who they actually hang around with, you may be able to use class rosters to build an approximate network. This is call a *bipartite network*, *two-mode*, or *projected network*. You can see an example below.
 
-In this figure there are two kinds of nodes, students and classes. You can "collapse" this into a student network by assuming every student connected to a class is connected to each other. The same is true with classes, such that classes are related to each other if a single student is enrolled in both. This assumption may not always be correct, and you need to take care if you are going to make it in your research. If a calss has 300 students, it is most likely not correct to assume every student knows every other student in that class.
+In this figure there are two kinds of nodes, students and classes. You can "collapse" this into a student network by assuming every student connected to a class is connected to each other. The same is true with classes, such that classes are related to each other if a single student is enrolled in both. This assumption may not always be correct, and you need to take care if you are going to make it in your research. If a class has 300 students, it is most likely not correct to assume every student knows every other student in that class.
 
 ```{r echo=FALSE, out.width= "100%"}
 knitr::include_graphics(net_url11)
+```
+
+For reference, this is what out projected class network looks like:
+
+```{r echo=FALSE, out.width= "100%"}
+# load in projected edgelist
+class_edges = read.csv("./data/toy_projected.csv", header = TRUE, stringsAsFactors = FALSE)
+class_attributes = read.csv("./data/toy_attributes.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# make plotting df
+.projected_df = class_attributes[!is.na(class_attributes$color), ]
+.projected_df$title = .projected_df$id
+
+# plot!
+visNetwork(nodes = .projected_df, edges = class_edges) %>% visInteraction(zoomView = FALSE)
 ```
 
 # Graph Level Properties
@@ -574,7 +588,7 @@ toy_network_total%v%"lc" = component.largest(toy_network_total)
 ### in the network
 toy_network = delete.vertices(toy_network_total, which(toy_network_total%v%"lc" == FALSE))
 ### in our dataframes
-toy_attributes = toy_attributes[toy_attributes$id %in% as.character(toy_network_total%v%"id"),]
+toy_attributes = toy_attributes[toy_attributes$id %in% as.character(toy_network_total%v%"vertex.names"),]
 toy_edgelist = toy_edgelist[which(toy_edgelist$to %in% toy_attributes$id | toy_edgelist$from %in% toy_attributes$id),]
 
 # generate measures
